@@ -13,14 +13,11 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="1 JNDI概述JNDI(Java Naming and Directory Interface,Java命名和目录接口)是SUN公司提供的一种标准的Java命名系统接口，JNDI提供统一的客户端API，通过不同的访问提供者接口JNDI服务供应接口(SPI)的实现，由管理者将JNDI API映射为特定的命名服务和目录系统，使得Java应用程序可以和这些命名服务和目录服务之间进行交互。目录服务是命名">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="d:\blogs\source_posts\assets\image-20230726143732215.png">
-<meta property="og:image" content="d:\blogs\source_posts\assets\image-20230726145458695.png">
 <meta property="article:published_time" content="2023-07-28T09:23:18.000Z">
-<meta property="article:modified_time" content="2023-07-28T09:24:21.000Z">
+<meta property="article:modified_time" content="2023-07-28T09:43:42.588Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="java">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="d:\blogs\source_posts\assets\image-20230726143732215.png">
   
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -165,9 +162,9 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.log4j2.JNDIRMI;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Exploit</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        Runtime.getRuntime().exec(<span class="string">&quot;calc&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>使用javac命令，将该类编译成class文件挂载在web页面上。</p>
-<p><img src="D:\blogs\source_posts\assets\image-20230726143732215.png" alt="image-20230726143732215"></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/Ugly744/abd.github.io/blob/main/image-20230726143732215.png">https://github.com/Ugly744/abd.github.io/blob/main/image-20230726143732215.png</a></p>
 <p>先运行RMIServer把恶意类绑定在RMI的Registry 里面，然后在运行RMIClient，在客户端调用<code>lookup</code>远程获取远程类的时候就会去寻找我们在RMI里面绑定的恶意类，请求到远程的类后会在本地进行执行。</p>
-<p><img src="D:\blogs\source_posts\assets\image-20230726145458695.png" alt="image-20230726145458695"></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/Ugly744/abd.github.io/blob/main/image-20230726145458695.png">https://github.com/Ugly744/abd.github.io/blob/main/image-20230726145458695.png</a></p>
 <p>我在这里其实是执行失败了，因为在高版本中，系统属性 <code>com.sun.jndi.rmi.object.trustURLCodebase</code>、<code>com.sun.jndi.cosnaming.object.trustURLCodebase</code> 的默认值变为false。而在低版本中这几个选项默认为true，可以远程加载一些类。</p>
 
       
