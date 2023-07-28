@@ -4,15 +4,23 @@
   <meta charset="utf-8">
   
   
-  <title>Hexo</title>
+  <title>浅谈JNDI注入 | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
-<meta property="og:url" content="http://example.com/index.html">
+  <meta name="description" content="1 JNDI概述JNDI(Java Naming and Directory Interface,Java命名和目录接口)是SUN公司提供的一种标准的Java命名系统接口，JNDI提供统一的客户端API，通过不同的访问提供者接口JNDI服务供应接口(SPI)的实现，由管理者将JNDI API映射为特定的命名服务和目录系统，使得Java应用程序可以和这些命名服务和目录服务之间进行交互。目录服务是命名">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅谈JNDI注入">
+<meta property="og:url" content="http://example.com/2023/07/28/%E6%B5%85%E8%B0%88JNDI%E6%B3%A8%E5%85%A5/index.html">
 <meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="1 JNDI概述JNDI(Java Naming and Directory Interface,Java命名和目录接口)是SUN公司提供的一种标准的Java命名系统接口，JNDI提供统一的客户端API，通过不同的访问提供者接口JNDI服务供应接口(SPI)的实现，由管理者将JNDI API映射为特定的命名服务和目录系统，使得Java应用程序可以和这些命名服务和目录服务之间进行交互。目录服务是命名">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="d:\blogs\source_posts\assets\image-20230726143732215.png">
+<meta property="og:image" content="d:\blogs\source_posts\assets\image-20230726145458695.png">
+<meta property="article:published_time" content="2023-07-28T09:23:18.000Z">
+<meta property="article:modified_time" content="2023-07-28T09:24:21.000Z">
 <meta property="article:author" content="John Doe">
+<meta property="article:tag" content="java">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="d:\blogs\source_posts\assets\image-20230726143732215.png">
   
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -71,9 +79,7 @@
 </header>
 
       <div class="outer">
-        <section id="main">
-  
-    <article id="post-浅谈JNDI注入" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-浅谈JNDI注入" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/07/28/%E6%B5%85%E8%B0%88JNDI%E6%B3%A8%E5%85%A5/" class="article-date">
   <time class="dt-published" datetime="2023-07-28T09:23:18.000Z" itemprop="datePublished">2023-07-28</time>
@@ -86,8 +92,8 @@
       <header class="article-header">
         
   
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/07/28/%E6%B5%85%E8%B0%88JNDI%E6%B3%A8%E5%85%A5/">浅谈JNDI注入</a>
+    <h1 class="p-name article-title" itemprop="headline name">
+      浅谈JNDI注入
     </h1>
   
 
@@ -176,11 +182,9 @@
     </footer>
   </div>
   
-</article>
-
-
-
+    
   
+</article>
 
 
 </section>
