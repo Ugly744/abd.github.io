@@ -1,45 +1,145 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>浅谈JNDI注入 | lyyourc</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <link rel="shortcut icon" href="/favicon.ico">
-  
-<link rel="stylesheet" href="/css/app.css">
+<!doctype html>
+<html lang="en">
 
-  <!-- <link rel='stylesheet' href='http://fonts.useso.com/css?family=Source+Code+Pro'> -->
-  
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+    <meta name="theme-color" content= #93b658 >
+    <title>浅谈JNDI注入 | ebandeng </title>
+
+    
+        <meta name="keywords" content=","/>
+        
+
+    
+    <meta name="description" content="1 JNDI概述JNDI(Java Naming and Directory Interface,Java命名和目录接口)是SUN公司提供的一种标准的Java命名系统接口，JNDI提供统一的客户..."/>
+
+    
+
+    
+
+    
+
+    
+        
+<link rel="stylesheet" href="/lib/social-share.js/dist/css/share.min.css">
+
+    
+    
+<link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/lib/materialize/dist/css/materialize.min.css">
+
+    
+<link rel="stylesheet" href="/lib/animate.css/animate.min.css">
+
+    
+<link rel="stylesheet" href="/css/post/atom-one-light.css">
+
+    
+<link rel="stylesheet" href="/css/pteris.css">
+
+
+
+    
+        
+<link rel="stylesheet" href="/css/post.css">
+
+    
+
+    
+        
+<link rel="stylesheet" href="/lib/lightgallery.js/dist/css/lightgallery.min.css">
+
+    
+
+    
 <meta name="generator" content="Hexo 6.3.0"></head>
 
 <body>
-  <nav class="app-nav">
-  
-    
-      <a href="/.">home</a>
-    
-  
-    
-      <a href="/archives">archive</a>
-    
-  
-    
-      <a href="/atom.xml">rss</a>
-    
-  
-</nav>
 
-  <main class="post">
-  <article>
-  <h1 class="article-title">
-    <a href="/2023/07/28/%E6%B5%85%E8%B0%88JNDI%E6%B3%A8%E5%85%A5/">浅谈JNDI注入</a>
-  </h1>
+<header>
+    
+        <div class="header-fixed">
+    <nav class="white lime-text lighten-1 " role="navigation">
+        <div class="nav-wrapper container">
+            <div id="logo-container">
+                <a href="/">
+                    
+                    <span class="brand-logo">ebandeng</span>
+                </a>
+            </div>
 
-  <section class="article-meta">
-    <p class="article-date">July 28 2023</p>
-  </section>
+            <ul class="right hide-on-med-and-down">
+                
+            </ul>
+            <a href="#" data-activates="nav-mobile" class="button-collapse">
+                <i class="fa fa-bars green-text"></i></a>
+        </div>
+    </nav>
+</div>
 
-  <section class="article-entry">
+<ul id="nav-mobile" class="side-nav">
+    
+</ul>
+
+
+
+    
+</header>
+
+<main>
+    
+
+    <div id="post">
+        <div class="container">
+            <div id="post-header" class="center">
+                <h1 class="center">浅谈JNDI注入</h1>
+                <span class="post-date center">
+                    <i class="fa fa-calendar"></i>
+                    <time datetime="2023-07-28T09:23:18.000Z">
+                        2023-07-28
+                    </time>
+                </span>
+
+                
+
+                
+                    <div class="post-gallery">
+                        <div id="lightgallery">
+                            
+                        </div>
+                    </div>
+                
+            </div>
+
+            <article>
+                <div class="content">
+                    
     <h2 id="1-JNDI"><a href="#1-JNDI" class="headerlink" title="1 JNDI"></a>1 JNDI</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>JNDI(Java Naming and Directory Interface,Java命名和目录接口)是SUN公司提供的一种标准的Java命名系统接口，JNDI提供统一的客户端API，通过不同的访问提供者接口JNDI服务供应接口(SPI)的实现，由管理者将JNDI API映射为特定的命名服务和目录系统，使得Java应用程序可以和这些命名服务和目录服务之间进行交互。目录服务是命名服务的一种自然扩展。</p>
 <p>JNDI(Java Naming and Directory Interface)是一个应用程序设计的API，为开发人员提供了查找和访问各种命名和目录服务的通用、统一的接口，类似JDBC都是构建在抽象层上。现在JNDI已经成为J2EE的标准之一，所有的J2EE容器都必须提供一个JNDI的服务。</p>
 <p>JNDI可访问的现有的目录及服务有：<br>DNS、XNam 、Novell目录服务、LDAP(Lightweight Directory Access Protocol轻型目录访问协议)、 CORBA对象服务、文件系统、Windows XP&#x2F;2000&#x2F;NT&#x2F;Me&#x2F;9x的注册表、RMI、DSML v1&amp;v2、NIS。</p>
@@ -109,78 +209,93 @@
 <p><img src="/imgs/$%7Bfiilename%7D/image-20230726145458695.png" alt="image-20230726145458695"></p>
 <p>我在这里其实是执行失败了，因为在高版本中，系统属性 <code>com.sun.jndi.rmi.object.trustURLCodebase</code>、<code>com.sun.jndi.cosnaming.object.trustURLCodebase</code> 的默认值变为false。而在低版本中这几个选项默认为true，可以远程加载一些类。</p>
 
-  </section>
-</article>
 
-  <div class="sharing grid">
-  <section class="profile grid-item grid">
-    <img class="avatar" src="http://7xrcp8.com1.z0.glb.clouddn.com/avatar.png" alt="avatar" />
-    <div class="grid-item">
-      <p class="title"> lyyourc </p>
-      <p class="subtitle"> You Are The JavaScript In My HTML </p>
-    <div>
-  </section>
-
-  <section class="share-btns">
-    <!-- <p> share it if you like it~ </p> -->
-    <a
-  class="twitter-share-button"
-  data-size="large"
-  data-via="DrakeLeung"
-  target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text= id="1-JNDI"><a href"
->
-  Tweet
-</a>
-
-<script>
-  window.twttr = (function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0],
-    t = window.twttr || {};
-  if (d.getElementById(id)) return t;
-  js = d.createElement(s);
-  js.id = id;
-  js.src = "https://platform.twitter.com/widgets.js";
-  js.async = true;
-  fjs.parentNode.insertBefore(js, fjs);
-
-  t._e = [];
-  t.ready = function(f) {
-    t._e.push(f);
-  };
-
-  return t;
-}(document, "script", "twitter-wjs"));
-</script>
-
-  </section>
-</div>
+                </div>
+            </article>
 
 
-  
-    
-<section class="article-comment">
-  <div id="disqus_thread">
-    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-  </div>
-</section>
-
-<script>
-  var disqus_shortname = 'drakeleung';
-  
-  var disqus_url = 'http://example.com/2023/07/28/%E6%B5%85%E8%B0%88JNDI%E6%B3%A8%E5%85%A5/';
-  
-  (function(){
-    var dsq = document.createElement('script');
-    dsq.type = 'text/javascript';
-    dsq.async = true;
-    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-  })();
-</script>
+            <div class="post-tags center">
+                
+                    <span class="post-tag chip">
+                        <a href="/tags/java/">java</a>
+                   </span>
+                
+            </div>
 
 
-  
+            <div class="social-share" data-mobile-sites="weibo,qq,qzone,facebook,twitter">
+                <span id="share-to">Share to</span>
+            </div>
+
+            <div class="post-footer">
+                
+                
+            </div>
+        </div>
+    </div>
+
+
 </main>
+
+<footer>
+    
+        <footer class="page-footer">
+    <div class="footer-copyright">
+        <div class="container">
+            <div>© 2017 Copyright ebandeng
+                <span class="right">
+                powered by
+                <a target="_blank" rel="noopener" href="http://hexo.io">hexo</a>.
+                theme:
+                <a target="_blank" rel="noopener" href="https://github.com/jonashao/hexo-theme-pteris">pteris</a>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    
+</footer>
+
+    
+</footer>
+
+
+    
+<script src="/lib/jquery/dist/jquery.min.js"></script>
+
+
+<script src="/lib/materialize/dist/js/materialize.min.js"></script>
+
+
+<script src="/lib/headroom.js/dist/headroom.min.js"></script>
+
+
+<script src="/lib/headroom.js/dist/jQuery.headroom.min.js"></script>
+
+
+
+
+    
+<script src="/lib/social-share.js/dist/js/share.min.js"></script>
+
+
+
+
+
+<script src="/js/pteris.js"></script>
+
+
+
+    
+<script src="/lib/lightgallery.js/dist/js/lightgallery.min.js"></script>
+
+
+
+
+
+
+
+
 
 </body>
 </html>
